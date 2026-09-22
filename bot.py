@@ -47,7 +47,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger("shashka")
 
 # ─── SOZLAMALAR ────────────────────────────────────────────────
-BOT_TOKEN   = os.getenv("BOT_TOKEN", "").strip()
+def _clean_token(v: str) -> str:
+    """Telegram bot tokenida HECH QANDAY bo'shliq bo'lmaydi — boshida,
+    oxirida yoki o'rtasida bo'lsin, hammasini olib tashlaymiz. Bu
+    BotFather'dan nusxalashda tasodifan qo'shilib qolgan probel yoki
+    qator ko'chirish sabab bo'lgan 'Token is invalid! It can't contain
+    spaces.' xatosining oldini oladi."""
+    return re.sub(r"\s+", "", v or "")
+
+BOT_TOKEN   = _clean_token(os.getenv("BOT_TOKEN", ""))
 ADMIN_IDS   = {int(x) for x in re.findall(r"\d+", os.getenv("ADMIN_ID", "0")) if int(x)}
 ADMIN_ID    = min(ADMIN_IDS) if ADMIN_IDS else 0
 WEBAPP_URL  = os.getenv("WEBAPP_URL", "").strip()
@@ -56,6 +64,19 @@ CARD_OWNER  = os.getenv("CARD_OWNER", "Familiya I.")
 CHANNEL     = os.getenv("CHANNEL_USERNAME", "").lstrip("@")
 LOG_CHANNEL = os.getenv("LOG_CHANNEL", "")
 PORT        = int(os.getenv("PORT", "8080"))
+
+if not re.fullmatch(r"\d+:[\w-]{20,}", BOT_TOKEN):
+    logger.error(
+        "=" * 60 + "\n"
+        "BOT_TOKEN NOTO'G'RI yoki bo'sh!\n"
+        "Railway → xizmatingiz → Variables → BOT_TOKEN qatorini oching,\n"
+        "qiymatni butunlay o'chirib, @BotFather bergan tokenni FAQAT\n"
+        "o'zini (masalan 123456789:AAExxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx)\n"
+        "qo'shtirnoqsiz, bo'shliqsiz qayta joylashtiring.\n"
+        f"Hozirgi topilgan qiymat (uzunligi {len(BOT_TOKEN)} belgi): {BOT_TOKEN!r}\n"
+        + "=" * 60
+    )
+    raise SystemExit(1)
 
 bot   = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp    = Dispatcher(storage=MemoryStorage())
