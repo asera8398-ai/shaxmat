@@ -17,7 +17,7 @@ import json
 import asyncpg
 from datetime import datetime
 
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/shashka")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@localhost:5432/shashka").strip()
 
 
 class Database:
