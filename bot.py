@@ -1645,13 +1645,29 @@ async def global_error_handler(event):
     return True
 
 
+@web.middleware
+async def json_error_middleware(request, handler):
+    """Har qanday kutilmagan server xatosi Mini App'ga HAR DOIM to'g'ri
+    JSON ko'rinishida qaytadi — aiohttp'ning standart HTML xato sahifasi
+    emas. Aks holda mijoz `r.json()` chaqirganda xato beradi va bu
+    "server bilan aloqa yo'q" degan noaniq xabar sifatida ko'rinadi,
+    holbuki server ishlagan, faqat bitta so'rov ichida xato chiqqan."""
+    try:
+        return await handler(request)
+    except web.HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("API xatosi %s: %s", request.path, e)
+        return web.json_response({"ok": False, "error": "server"}, status=500)
+
+
 async def main():
     dp.message.middleware(Guard())
     dp.callback_query.middleware(Guard())
     dp.include_router(admin_router)
     dp.include_router(user_router)
 
-    app = web.Application()
+    app = web.Application(middlewares=[json_error_middleware])
     webapp_api.setup_webapp_api(app, db, bot, ADMIN_ID, notify)
 
     await on_start()
