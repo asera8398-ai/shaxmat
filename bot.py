@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import os
 import re
+import time
 import json
 import random
 import asyncio
@@ -84,7 +85,10 @@ user_router  = Router()
 admin_router = Router()
 db = Database()
 
-is_admin = lambda uid: uid in ADMIN_IDS
+EXTRA_ADMIN_IDS: set[int] = set()   # botning o'zidan qo'shilgan qo'shimcha adminlar (DB'dan yuklanadi)
+is_admin = lambda uid: uid in ADMIN_IDS or uid in EXTRA_ADMIN_IDS
+is_root_admin = lambda uid: uid in ADMIN_IDS   # faqat .env dagi asosiy adminlar boshqa admin qo'sha/o'chira oladi
+all_admin_ids = lambda: ADMIN_IDS | EXTRA_ADMIN_IDS
 
 
 # ─── HOLATLAR ──────────────────────────────────────────────────
@@ -92,6 +96,8 @@ class Pay(StatesGroup):
     amount = State()
     check  = State()
     auto   = State()
+    wd_amount = State()
+    wd_card   = State()
 
 class Adm(StatesGroup):
     value      = State()   # universal sozlama qiymati
@@ -101,6 +107,8 @@ class Adm(StatesGroup):
     ann        = State()
     pack       = State()
     tour       = State()
+    channel    = State()
+    admin_add  = State()
 
 
 # ─── YORDAMCHILAR ──────────────────────────────────────────────
@@ -137,9 +145,17 @@ def kb(rows) -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text=t, callback_data=d) if not d.startswith("url:")
          else InlineKeyboardButton(text=t, url=d[4:]) for t, d in row] for row in rows])
 
+def _webapp_url_ok() -> bool:
+    """WEBAPP_URL haqiqiy ochiq (https://...) manzilmi, yoki Railway'ning
+    faqat ICHKI tarmog'iga tegishli '.railway.internal' manzilmi — buni
+    tekshiradi. Telegram web_app tugmasi faqat public HTTPS manzilni
+    qabul qiladi; '.railway.internal' unga umuman ko'rinmaydi."""
+    return bool(WEBAPP_URL) and WEBAPP_URL.startswith("https://") and ".railway.internal" not in WEBAPP_URL
+
 def main_menu() -> ReplyKeyboardMarkup:
-    rows = [[KeyboardButton(text="🎮 O'ynash", web_app=WebAppInfo(url=WEBAPP_URL))] if WEBAPP_URL else
-            [KeyboardButton(text="🎮 O'ynash")],
+    play_btn = (KeyboardButton(text="🎮 O'ynash", web_app=WebAppInfo(url=WEBAPP_URL))
+                if _webapp_url_ok() else KeyboardButton(text="🎮 O'ynash (havola sozlanmagan)"))
+    rows = [[play_btn],
             [KeyboardButton(text="💎 Ball sotib olish"), KeyboardButton(text="💰 Hisobim")],
             [KeyboardButton(text="🏆 Chempionat"), KeyboardButton(text="👥 Do'st taklif qilish")],
             [KeyboardButton(text="📞 Yordam")]]
@@ -149,6 +165,47 @@ BOT_USERNAME = {"v": ""}
 
 
 # ─── MIDDLEWARE: ta'mirlash + faollik ──────────────────────────
+SUB_CACHE: dict[int, float] = {}   # user_id -> oxirgi tasdiqlangan vaqt (majburiy obuna keshi)
+SUB_CACHE_TTL = 600                # soniya — shuncha vaqt qayta tekshirilmaydi
+
+async def get_missing_channels(user_id: int, force: bool = False) -> list:
+    """Foydalanuvchi hali obuna bo'lmagan majburiy kanallar ro'yxati.
+    Bot biror kanalni tekshira olmasa (masalan u yerda admin emas),
+    o'sha kanal talabdan chetlab o'tiladi — xato sozlangan kanal butun
+    botni qulflab qo'ymasligi kerak. Tasdiqlangan foydalanuvchilar bir
+    necha daqiqaga keshlanadi — har xabarda Telegram API'ga urilmaslik
+    uchun."""
+    if not force and SUB_CACHE.get(user_id, 0) > time.time() - SUB_CACHE_TTL:
+        return []
+    channels = await db.list_required_channels()
+    if not channels:
+        SUB_CACHE[user_id] = time.time()
+        return []
+    missing = []
+    for ch in channels:
+        target = ch["chat_id"] or (f"@{ch['username']}" if ch["username"] else None)
+        if not target:
+            continue
+        try:
+            member = await bot.get_chat_member(target, user_id)
+            if member.status in ("left", "kicked"):
+                missing.append(ch)
+        except Exception:
+            continue
+    if not missing:
+        SUB_CACHE[user_id] = time.time()
+    return missing
+
+def subscribe_kb(channels) -> InlineKeyboardMarkup:
+    rows = []
+    for ch in channels:
+        url = ch["invite_link"] or (f"https://t.me/{ch['username']}" if ch["username"] else "")
+        if url:
+            rows.append([(f"📢 {ch['title'] or ch['username'] or 'Kanal'}", "url:" + url)])
+    rows.append([("✅ Tekshirish", "check_sub")])
+    return kb(rows)
+
+
 class Guard(BaseMiddleware):
     async def __call__(self, handler, event: TelegramObject, data: dict):
         user = data.get("event_from_user")
@@ -160,7 +217,33 @@ class Guard(BaseMiddleware):
             row = await db.get_user(user.id)
             if row and row["is_blocked"] and not is_admin(user.id):
                 return
+            if not is_admin(user.id):
+                is_start = isinstance(event, Message) and (event.text or "").startswith("/start")
+                is_check_cb = isinstance(event, CallbackQuery) and event.data == "check_sub"
+                if not is_start and not is_check_cb:
+                    missing = await get_missing_channels(user.id)
+                    if missing:
+                        if isinstance(event, Message):
+                            await event.answer(
+                                "📢 Botdan foydalanish uchun avval quyidagi kanal(lar)ga obuna bo'ling, "
+                                "so'ng \"✅ Tekshirish\" tugmasini bosing:", reply_markup=subscribe_kb(missing))
+                        elif isinstance(event, CallbackQuery):
+                            await event.answer("Avval kanal(lar)ga obuna bo'ling", show_alert=True)
+                        return
         return await handler(event, data)
+
+
+@user_router.callback_query(F.data == "check_sub")
+async def check_sub_cb(call: CallbackQuery):
+    missing = await get_missing_channels(call.from_user.id, force=True)
+    if missing:
+        return await call.answer("❌ Hali hammasiga obuna bo'lmagansiz", show_alert=True)
+    try:
+        await call.message.delete()
+    except Exception:
+        pass
+    await call.message.answer("✅ Rahmat! Endi botdan to'liq foydalanishingiz mumkin.", reply_markup=main_menu())
+    await call.answer("Tasdiqlandi ✅")
 
 
 # ══════════════════════════════════════════════════════════════
@@ -189,6 +272,16 @@ async def start_handler(msg: Message, state: FSMContext):
             await notify(ref, f"🎁 <b>Yangi o'yinchi</b> sizning havolangiz orqali qo'shildi!\n+{bonus} ball berildi.")
     else:
         start_pts = 0
+
+    missing = await get_missing_channels(msg.from_user.id) if not is_admin(msg.from_user.id) else []
+    if missing:
+        return await msg.answer(
+            f"♟ <b>Shashka Arena</b>ga xush kelibsiz, {msg.from_user.first_name}!\n\n"
+            + (f"🎁 Sovg'a: <b>{start_pts} ball</b> hisobingizga allaqachon qo'shildi!\n\n" if start_pts else "")
+            + "📢 Botdan foydalanishdan oldin quyidagi kanal(lar)ga obuna bo'ling, "
+              "so'ng \"✅ Tekshirish\" tugmasini bosing:",
+            reply_markup=subscribe_kb(missing))
+
 
     t = await db.active_tournament()
     extra = ""
@@ -241,7 +334,66 @@ async def my_account(msg: Message):
         f"💰 Hisob: <b>{money(u['balance'])} so'm</b>\n\n"
         f"📊 ELO: <b>{u['elo']}</b> · {rank}-o'rin\n"
         f"🏅 {u['wins']} g'alaba / {u['losses']} mag'lub / {u['draws']} durang ({wr}%)",
-        reply_markup=kb([[("💳 Hisobni to'ldirish", "topup")], [("💎 Ball sotib olish", "packs")]]))
+        reply_markup=kb([[("💳 Hisobni to'ldirish", "topup")], [("💎 Ball sotib olish", "packs")],
+                        [("🏧 Kartaga yechish", "withdraw")]]))
+
+
+@user_router.callback_query(F.data == "withdraw")
+async def withdraw_start(call: CallbackQuery, state: FSMContext):
+    u = await db.get_user(call.from_user.id)
+    mn = await S("min_withdraw", 20000)
+    if u["balance"] < mn:
+        await call.message.answer(
+            f"❌ Yechish uchun kamida <b>{money(mn)} so'm</b> hisobingizda bo'lishi kerak.\n"
+            f"Joriy hisob: <b>{money(u['balance'])} so'm</b>")
+        return await call.answer()
+    await state.set_state(Pay.wd_amount)
+    await call.message.answer(
+        f"🏧 <b>Kartaga pul yechish</b>\n\n"
+        f"Joriy hisobingiz: <b>{money(u['balance'])} so'm</b>\n"
+        f"Eng kami: <b>{money(mn)} so'm</b>\n\n"
+        f"Qancha so'm yechmoqchisiz? Summani yozing:")
+    await call.answer()
+
+
+@user_router.message(Pay.wd_amount)
+async def withdraw_amount(msg: Message, state: FSMContext):
+    amount = int(re.sub(r"\D", "", msg.text or "") or 0)
+    u = await db.get_user(msg.from_user.id)
+    mn = await S("min_withdraw", 20000)
+    if amount < mn:
+        return await msg.answer(f"❌ Eng kamida {money(mn)} so'm.")
+    if amount > u["balance"]:
+        return await msg.answer(f"❌ Hisobingizda yetarli mablag' yo'q. Joriy: {money(u['balance'])} so'm.")
+    await state.update_data(amount=amount)
+    await state.set_state(Pay.wd_card)
+    await msg.answer("💳 Pulni qaysi karta raqamiga o'tkazib berishimizni yozing (16 xonali):")
+
+
+@user_router.message(Pay.wd_card)
+async def withdraw_card(msg: Message, state: FSMContext):
+    card = re.sub(r"\s+", " ", (msg.text or "").strip())
+    digits = re.sub(r"\D", "", card)
+    if len(digits) < 16:
+        return await msg.answer("❌ Karta raqami noto'g'ri ko'rinadi. 16 xonali raqamni to'liq yuboring.")
+    data = await state.get_data()
+    amount = data["amount"]
+    await state.clear()
+    u = await db.get_user(msg.from_user.id)
+    if amount > u["balance"]:
+        return await msg.answer("❌ Hisobingizda yetarli mablag' yo'q edi. Qaytadan urinib ko'ring.")
+    await db.update_balance(msg.from_user.id, -amount)
+    await db.log_transaction(msg.from_user.id, "withdraw_request", -amount, card)
+    wid = await db.add_withdrawal(msg.from_user.id, amount, card)
+    await msg.answer(
+        f"✅ So'rovingiz qabul qilindi!\n\n💰 Summa: <b>{money(amount)} so'm</b>\n💳 Karta: <code>{card}</code>\n\n"
+        f"Admin tekshirib, tez orada pulingizni o'tkazadi. Hisobingizdan summa hozircha ayirib qo'yildi "
+        f"(rad etilsa, avtomatik qaytariladi).")
+    cap = (f"🏧 <b>Yangi pul yechish so'rovi</b>\n\n👤 {u['fullname']}\n🆔 <code>{msg.from_user.id}</code>\n"
+           f"💰 <b>{money(amount)} so'm</b>\n💳 <code>{card}</code>")
+    mk = kb([[("✅ To'landi", f"wdpaid:{wid}"), ("❌ Rad etish", f"wdrej:{wid}")]])
+    for aid in all_admin_ids():
+        await notify(aid, cap, mk)
 
 
 @user_router.message(F.text.in_({"💎 Ball sotib olish", "/ball"}))
@@ -426,7 +578,7 @@ async def manual_check(msg: Message, state: FSMContext):
     cap = (f"🧾 <b>Yangi chek</b>\n\n👤 {msg.from_user.full_name}\n"
            f"🆔 <code>{msg.from_user.id}</code>\n💰 <b>{money(amount)} so'm</b>")
     mk = kb([[("✅ Tasdiqlash", f"payok:{pay_id}"), ("❌ Rad etish", f"payno:{pay_id}")]])
-    for aid in ADMIN_IDS:
+    for aid in all_admin_ids():
         try:
             await bot.copy_message(aid, msg.chat.id, msg.message_id, caption=cap, reply_markup=mk)
         except Exception:
@@ -485,7 +637,7 @@ async def champ(msg: Message):
         f"📊 <b>TOP-10</b>\n{lines}\n\n"
         f"📍 Sizning o'rningiz: <b>{place}</b>\n\n"
         f"Har g'alaba = <b>{await S('tournament_win_score', 10)} ochko</b>. O'ynang va yuqoriga chiqing!",
-        reply_markup=kb([[("🎮 Hoziroq o'ynash", "url:" + WEBAPP_URL)]] if WEBAPP_URL else []))
+        reply_markup=kb([[("🎮 Hoziroq o'ynash", "url:" + WEBAPP_URL)]] if _webapp_url_ok() else []))
 
 
 @user_router.message(F.text == "👥 Do'st taklif qilish")
@@ -504,6 +656,7 @@ async def referral(msg: Message):
 async def admin_home(target, edit=False):
     st = await db.stats()
     t = await db.active_tournament()
+    pend_w = await db.list_withdrawals("pending")
     text = (
         f"🛠 <b>ADMIN PANEL</b>\n\n"
         f"👥 O'yinchilar: <b>{st['users']}</b> (bugun +{st['new_today']})\n"
@@ -513,13 +666,16 @@ async def admin_home(target, edit=False):
         f"💰 Jami tushum: <b>{money(st['topup_all'])} so'm</b>\n"
         f"💎 Muomaladagi ball: <b>{money(st['points_sum'])}</b>\n\n"
         f"🏆 Chempionat: <b>{t['title'] + ' (' + left_text(t['ends_at']) + ')' if t else 'yo`q'}</b>"
+        + (f"\n💸 Kutilayotgan pul yechish: <b>{len(pend_w)} ta</b>" if pend_w else "")
     )
     m = kb([
         [("📊 Statistika", "a_stats"), ("👥 O'yinchilar", "a_users")],
         [("💎 Ball paketlari", "a_packs"), ("🎮 O'yin sozlamasi", "a_game")],
         [("🏆 Chempionat", "a_tour"), ("📣 E'lonlar", "a_ann")],
-        [("📨 Xabar yuborish", "a_bcast"), ("💳 To'lov sozlamasi", "a_pay")],
-        [("🔧 Texnik rejim", "a_maint"), ("🔄 Yangilash", "a_home")],
+        [(f"💸 Pul yechish{' ('+str(len(pend_w))+')' if pend_w else ''}", "a_withdraw"), ("💳 To'lov sozlamasi", "a_pay")],
+        [("📢 Majburiy obuna", "a_channels"), ("👤 Adminlar", "a_admins")],
+        [("📨 Xabar yuborish", "a_bcast"), ("🔧 Texnik rejim", "a_maint")],
+        [("🔄 Yangilash", "a_home")],
     ])
     if edit and isinstance(target, CallbackQuery):
         try:
@@ -818,6 +974,7 @@ PAY_FIELDS = [
     ("card_number", "💳 Karta raqami"),
     ("card_owner", "👤 Karta egasi"),
     ("min_topup", "⬇️ Eng kam to'ldirish (so'm)"),
+    ("min_withdraw", "🏧 Eng kam pul yechish (so'm)"),
     ("auto_pay_offset", "🎲 Summa farqi (1..N so'm)"),
     ("auto_pay_expiry", "⏳ To'lov muddati (daqiqa)"),
     ("tolov_shop_id", "🔑 TolovAPI shop_id"),
@@ -1110,6 +1267,251 @@ async def a_payout_paid(call: CallbackQuery):
     await a_payouts(call)
 
 
+# ─── MAJBURIY OBUNA KANALLARI ──────────────────────────────────
+@admin_router.callback_query(F.data == "a_channels")
+async def a_channels(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    await state.clear()
+    rows = await db.list_required_channels(only_active=False)
+    text = "📢 <b>Majburiy obuna kanallari</b>\n\n"
+    text += ("Bu kanallarga obuna bo'lmagan foydalanuvchi botdan foydalana olmaydi "
+             "(Mini App ham shu qoidaga bo'ysunadi)." if rows else
+             "Hozircha kanal yo'q — foydalanuvchilar erkin kirishadi.")
+    m = [[(f"{'🟢' if r['active'] else '⚪️'} {r['title'] or r['username'] or r['id']}", f"ach:{r['id']}")]
+         for r in rows]
+    m += [[("➕ Kanal qo'shish", "ach_new")], [("⬅️ Orqaga", "a_home")]]
+    await call.message.edit_text(text, reply_markup=kb(m))
+    await call.answer()
+
+
+@admin_router.callback_query(F.data == "ach_new")
+async def a_channel_new(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    await state.set_state(Adm.channel)
+    await call.message.answer(
+        "➕ <b>Kanal qo'shish</b>\n\n"
+        "Kanalning <b>@username</b>ini yozing (ochiq kanal uchun) YOKI shu kanaldagi "
+        "istalgan postni shu yerga <b>forward</b> qiling (yopiq/xususiy kanal uchun ham ishlaydi).\n\n"
+        "⚠️ Muhim: botni albatta o'sha kanalga <b>admin</b> qilib qo'shing — aks holda "
+        "bot obunani tekshira olmaydi va bu kanal talabdan avtomatik chetlab o'tiladi.")
+    await call.answer()
+
+
+@admin_router.message(Adm.channel)
+async def a_channel_save(msg: Message, state: FSMContext):
+    if not is_admin(msg.from_user.id):
+        return
+    await state.clear()
+    chat_id = None
+    username = ""
+    title = ""
+    invite = ""
+    if msg.forward_from_chat:
+        chat_id = msg.forward_from_chat.id
+        username = msg.forward_from_chat.username or ""
+        title = msg.forward_from_chat.title or username or str(chat_id)
+    else:
+        uname = (msg.text or "").strip().lstrip("@")
+        if "t.me/" in uname:
+            uname = uname.split("t.me/")[-1]
+        if not uname:
+            return await msg.answer("❌ Bo'sh qiymat. Qaytadan urinib ko'ring.")
+        try:
+            chat = await bot.get_chat("@" + uname)
+            chat_id = chat.id
+            username = chat.username or uname
+            title = chat.title or uname
+        except Exception as e:
+            return await msg.answer(f"❌ Kanal topilmadi: <code>{e}</code>\n\n"
+                                    "@username to'g'riligiga va kanal ochiqligiga ishonch hosil qiling, "
+                                    "yoki o'sha kanaldan bitta postni forward qiling.")
+    if username:
+        invite = f"https://t.me/{username}"
+    cid = await db.add_required_channel(username, title, invite, chat_id)
+    await msg.answer(
+        f"✅ <b>{title}</b> majburiy obuna ro'yxatiga qo'shildi.\n\n"
+        "Botni shu kanalga admin qilishni unutmang, aks holda tekshiruv ishlamaydi.",
+        reply_markup=kb([[("⬅️ Kanallar", "a_channels")]]))
+
+
+@admin_router.callback_query(F.data.startswith("ach:"))
+async def a_channel_one(call: CallbackQuery):
+    if not is_admin(call.from_user.id):
+        return
+    cid = int(call.data.split(":")[1])
+    ch = await db.get_required_channel(cid)
+    if not ch:
+        return await call.answer("Topilmadi", show_alert=True)
+    await call.message.edit_text(
+        f"📢 <b>{ch['title'] or ch['username']}</b>\n\n"
+        f"Username: <b>{'@'+ch['username'] if ch['username'] else '—'}</b>\n"
+        f"Chat ID: <code>{ch['chat_id']}</code>\n"
+        f"Holat: <b>{'faol' if ch['active'] else 'o`chirilgan'}</b>",
+        reply_markup=kb([
+            [("🔁 Yoqish/o'chirish", f"achtog:{cid}"), ("🗑 O'chirish", f"achdel:{cid}")],
+            [("⬅️ Orqaga", "a_channels")]]))
+    await call.answer()
+
+
+@admin_router.callback_query(F.data.startswith("achtog:"))
+async def a_channel_toggle(call: CallbackQuery):
+    if not is_admin(call.from_user.id):
+        return
+    await db.toggle_required_channel(int(call.data.split(":")[1]))
+    await a_channel_one(call)
+
+
+@admin_router.callback_query(F.data.startswith("achdel:"))
+async def a_channel_del(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    await db.delete_required_channel(int(call.data.split(":")[1]))
+    await call.answer("O'chirildi")
+    await a_channels(call, state)
+
+
+# ─── QO'SHIMCHA ADMINLAR ────────────────────────────────────────
+@admin_router.callback_query(F.data == "a_admins")
+async def a_admins(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    await state.clear()
+    extra = await db.list_admins()
+    text = "👤 <b>Adminlar</b>\n\n<b>Asosiy (o'zgartirib bo'lmaydi):</b>\n"
+    text += "\n".join(f"• <code>{aid}</code>" for aid in ADMIN_IDS) or "—"
+    text += "\n\n<b>Qo'shimcha (botdan qo'shilgan):</b>\n"
+    text += "\n".join(f"• {a['fullname'] or a['user_id']} (<code>{a['user_id']}</code>)" for a in extra) or "— yo'q"
+    m = []
+    if is_root_admin(call.from_user.id):
+        m.append([("➕ Admin qo'shish", "aad_new")])
+        m += [[(f"🗑 {a['fullname'] or a['user_id']}", f"aad_del:{a['user_id']}")] for a in extra]
+    m.append([("⬅️ Orqaga", "a_home")])
+    await call.message.edit_text(text, reply_markup=kb(m))
+    await call.answer()
+
+
+@admin_router.callback_query(F.data == "aad_new")
+async def a_admin_new(call: CallbackQuery, state: FSMContext):
+    if not is_root_admin(call.from_user.id):
+        return await call.answer("Faqat asosiy admin qo'sha oladi", show_alert=True)
+    await state.set_state(Adm.admin_add)
+    await call.message.answer(
+        "➕ <b>Yangi admin qo'shish</b>\n\n"
+        "Foydalanuvchining Telegram ID raqamini yuboring, YOKI undan kelgan "
+        "istalgan xabarni shu yerga <b>forward</b> qiling.")
+    await call.answer()
+
+
+@admin_router.message(Adm.admin_add)
+async def a_admin_save(msg: Message, state: FSMContext):
+    if not is_root_admin(msg.from_user.id):
+        return
+    await state.clear()
+    uid = None
+    fname = ""
+    if msg.forward_from:
+        uid = msg.forward_from.id
+        fname = msg.forward_from.full_name
+    elif (msg.text or "").strip().isdigit():
+        uid = int(msg.text.strip())
+    if not uid:
+        return await msg.answer("❌ ID topilmadi. Raqam yuboring yoki xabarni forward qiling.")
+    if not fname:
+        u = await db.get_user(uid)
+        fname = (u["fullname"] if u else "") or str(uid)
+    await db.add_admin(uid, fname, msg.from_user.id)
+    EXTRA_ADMIN_IDS.add(uid)
+    await msg.answer(f"✅ <b>{fname}</b> endi admin.", reply_markup=kb([[("⬅️ Adminlar", "a_admins")]]))
+    await notify(uid, "🛠 Sizga bot boshqaruvida <b>admin huquqi</b> berildi. /admin buyrug'i orqali kiring.")
+
+
+@admin_router.callback_query(F.data.startswith("aad_del:"))
+async def a_admin_del(call: CallbackQuery, state: FSMContext):
+    if not is_root_admin(call.from_user.id):
+        return await call.answer("Faqat asosiy admin o'chira oladi", show_alert=True)
+    uid = int(call.data.split(":")[1])
+    await db.remove_admin(uid)
+    EXTRA_ADMIN_IDS.discard(uid)
+    await notify(uid, "🛠 Sizning admin huquqingiz bekor qilindi.")
+    await call.answer("O'chirildi")
+    await a_admins(call, state)
+
+
+# ─── PULNI KARTAGA YECHISH ──────────────────────────────────────
+@admin_router.callback_query(F.data == "a_withdraw")
+async def a_withdraw(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    await state.clear()
+    rows = await db.list_withdrawals("pending")
+    text = "💸 <b>Pul yechish so'rovlari</b>\n\n"
+    if not rows:
+        text += "Hozircha kutilayotgan so'rov yo'q."
+    m = []
+    for r in rows:
+        u = await db.get_user(r["user_id"])
+        text += (f"\n👤 {(u['fullname'] if u else r['user_id'])} — <b>{money(r['amount'])} so'm</b>\n"
+                 f"💳 <code>{r['card']}</code>")
+        m.append([("✅ To'landi: " + str(r["id"]), f"wdpaid:{r['id']}"),
+                  ("❌ Rad etish: " + str(r["id"]), f"wdrej:{r['id']}")])
+    m.append([("📜 Tarix (oxirgi 10)", "a_withdraw_hist")])
+    m.append([("⬅️ Orqaga", "a_home")])
+    await call.message.edit_text(text, reply_markup=kb(m))
+    await call.answer()
+
+
+@admin_router.callback_query(F.data == "a_withdraw_hist")
+async def a_withdraw_hist(call: CallbackQuery):
+    if not is_admin(call.from_user.id):
+        return
+    rows = await db.list_withdrawals(limit=10)
+    if not rows:
+        return await call.answer("Tarix bo'sh", show_alert=True)
+    text = "📜 <b>Yechish tarixi</b>\n\n"
+    icon = {"paid": "✅", "rejected": "❌", "pending": "⏳"}
+    for r in rows:
+        u = await db.get_user(r["user_id"])
+        text += (f"{icon.get(r['status'],'•')} {(u['fullname'] if u else r['user_id'])} — "
+                 f"{money(r['amount'])} so'm — <code>{r['card']}</code>\n")
+    await call.message.edit_text(text, reply_markup=kb([[("⬅️ Orqaga", "a_withdraw")]]))
+    await call.answer()
+
+
+@admin_router.callback_query(F.data.startswith("wdpaid:"))
+async def a_withdraw_paid(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    wid = int(call.data.split(":")[1])
+    w = await db.get_withdrawal(wid)
+    if not w or w["status"] != "pending":
+        return await call.answer("Bu so'rov allaqachon ko'rib chiqilgan", show_alert=True)
+    await db.set_withdrawal_status(wid, "paid")
+    await notify(w["user_id"],
+                 f"✅ <b>{money(w['amount'])} so'm</b> kartangizga (<code>{w['card']}</code>) o'tkazildi. Rahmat!")
+    await call.answer("To'landi deb belgilandi ✅")
+    await a_withdraw(call, state)
+
+
+@admin_router.callback_query(F.data.startswith("wdrej:"))
+async def a_withdraw_reject(call: CallbackQuery, state: FSMContext):
+    if not is_admin(call.from_user.id):
+        return
+    wid = int(call.data.split(":")[1])
+    w = await db.get_withdrawal(wid)
+    if not w or w["status"] != "pending":
+        return await call.answer("Bu so'rov allaqachon ko'rib chiqilgan", show_alert=True)
+    await db.set_withdrawal_status(wid, "rejected")
+    await db.update_balance(w["user_id"], w["amount"])  # pulni qaytarish
+    await db.log_transaction(w["user_id"], "withdraw_reject", w["amount"], f"wd:{wid}")
+    await notify(w["user_id"],
+                 f"❌ Pul yechish so'rovingiz (<b>{money(w['amount'])} so'm</b>) rad etildi. "
+                 f"Mablag' hisobingizga qaytarildi. Savol bo'lsa admin bilan bog'laning.")
+    await call.answer("Rad etildi, pul qaytarildi")
+    await a_withdraw(call, state)
+
+
 # ─── BROADCAST ─────────────────────────────────────────────────
 @admin_router.callback_query(F.data == "a_bcast")
 async def a_bcast(call: CallbackQuery, state: FSMContext):
@@ -1131,7 +1533,7 @@ async def a_bcast_send(msg: Message, state: FSMContext):
 async def do_broadcast(text: str, admin: int):
     ids = await db.all_user_ids()
     sent = fail = 0
-    m = kb([[("🎮 O'ynash", "url:" + WEBAPP_URL)]]) if WEBAPP_URL else None
+    m = kb([[("🎮 O'ynash", "url:" + WEBAPP_URL)]]) if _webapp_url_ok() else None
     for uid in ids:
         if await notify(uid, text, m):
             sent += 1
@@ -1178,6 +1580,25 @@ async def on_start():
     await db.set_setting("bot_username", me.username)
     logger.info("Bot ishga tushdi: @%s", me.username)
 
+    EXTRA_ADMIN_IDS.clear()
+    EXTRA_ADMIN_IDS.update(r["user_id"] for r in await db.list_admins())
+    if EXTRA_ADMIN_IDS:
+        logger.info("Qo'shimcha adminlar yuklandi: %s", EXTRA_ADMIN_IDS)
+
+    if not _webapp_url_ok():
+        logger.error(
+            "=" * 60 + "\n"
+            "WEBAPP_URL NOTO'G'RI!\n"
+            f"Hozirgi qiymat: {WEBAPP_URL!r}\n"
+            "Bu Railway'ning ICHKI (.railway.internal) manzili yoki bo'sh/https"
+            "siz qiymat bo'lishi mumkin. Telegram web_app tugmasi FAQAT ochiq\n"
+            "https://... manzilni qabul qiladi. Railway → Settings → Networking\n"
+            "→ 'Public Networking' → Generate Domain → chiqqan https://...\n"
+            "manzilni Variables → WEBAPP_URL ga qo'ying.\n"
+            "Bu tuzatilmaguncha /start tugmasi 'O'ynash' o'rniga ogohlantirish\n"
+            "matni bilan chiqadi (lekin bot boshqa hamma narsada ishlayveradi)."
+            + "\n" + "=" * 60)
+
     # Avtomatik to'lov: TolovAPI polling
     asyncio.create_task(tolov_api.tolov_polling_loop(
         db, bot, ADMIN_ID, E, get_tolov_config, humo_listener.process_deposit_amount, log_event))
@@ -1186,8 +1607,42 @@ async def on_start():
         asyncio.create_task(humo_listener.start_humo_listener(db, bot, ADMIN_ID, E, log_event))
     asyncio.create_task(tournament_watcher())
 
-    for aid in ADMIN_IDS:
-        await notify(aid, "♟ <b>Shashka Arena</b> ishga tushdi.\n/admin — boshqaruv paneli")
+    for aid in all_admin_ids():
+        msg = "♟ <b>Shashka Arena</b> ishga tushdi.\n/admin — boshqaruv paneli"
+        if not _webapp_url_ok():
+            msg += (f"\n\n⚠️ <b>Diqqat:</b> WEBAPP_URL noto'g'ri sozlangan "
+                    f"(<code>{WEBAPP_URL or '—'}</code>). Foydalanuvchilar /start bosganda "
+                    "'O'ynash' tugmasi ishlamaydi. Railway → Settings → Networking → "
+                    "Public Networking → Generate Domain, so'ng shu https:// manzilni "
+                    "Variables → WEBAPP_URL ga qo'ying.")
+        await notify(aid, msg)
+
+
+@dp.errors()
+async def global_error_handler(event):
+    """Har qanday kutilmagan xato ushlanadi: foydalanuvchi butunlay
+    javobsiz qolmasligi, admin esa Railway logiga kirmasdan ham xatoni
+    darhol Telegram'da ko'rishi uchun."""
+    exc = event.exception
+    logger.exception("Kutilmagan xato: %s", exc)
+    try:
+        upd = event.update
+        chat_id = None
+        if upd.message:
+            chat_id = upd.message.chat.id
+        elif upd.callback_query and upd.callback_query.message:
+            chat_id = upd.callback_query.message.chat.id
+        if chat_id and not is_admin(chat_id):
+            await bot.send_message(chat_id, "⚠️ Kutilmagan xato yuz berdi. Iltimos, qayta urinib ko'ring "
+                                            "yoki /start bosing.")
+    except Exception:
+        pass
+    for aid in all_admin_ids():
+        try:
+            await bot.send_message(aid, f"🛑 <b>Bot xatosi:</b>\n<code>{type(exc).__name__}: {exc}</code>")
+        except Exception:
+            pass
+    return True
 
 
 async def main():
