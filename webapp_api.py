@@ -44,7 +44,11 @@ RATE_LIMIT = {}                      # user_id -> [timestamps]
 def verify_init_data(init_data: str) -> dict | None:
     """Telegram initData imzosini tekshiradi. Muvaffaqiyatli bo'lsa
     `user` lug'atini qaytaradi, aks holda None."""
-    if not init_data or not BOT_TOKEN:
+    if not init_data:
+        logger.warning("initData bo'sh — ilova Telegram ICHIDA emas, oddiy brauzerda ochilgan bo'lishi mumkin")
+        return None
+    if not BOT_TOKEN:
+        logger.error("BOT_TOKEN bo'sh — initData imzosini tekshirib bo'lmaydi")
         return None
     try:
         pairs = dict(parse_qsl(init_data, keep_blank_values=True))
@@ -55,8 +59,13 @@ def verify_init_data(init_data: str) -> dict | None:
         secret = hmac.new(b"WebAppData", BOT_TOKEN.encode(), hashlib.sha256).digest()
         calc = hmac.new(secret, check_string.encode(), hashlib.sha256).hexdigest()
         if not hmac.compare_digest(calc, received_hash):
+            logger.warning(
+                "initData imzosi mos kelmadi — BOT_TOKEN Mini App serverida botning "
+                "haqiqiy tokeniga mos emas bo'lishi mumkin (ikkalasi bir xil BOT_TOKEN'dan "
+                "foydalanishi shart)")
             return None
         if time.time() - int(pairs.get("auth_date", 0)) > INITDATA_TTL:
+            logger.warning("initData muddati o'tgan (auth_date juda eski)")
             return None
         user = json.loads(pairs.get("user", "{}"))
         if not user.get("id"):
@@ -82,6 +91,34 @@ def full_name(u: dict) -> str:
 
 def setup_webapp_api(app: web.Application, db, bot=None, admin_id: int = 0, notify=None):
     """API marshrutlarini mavjud aiohttp ilovasiga ulaydi."""
+
+    async def check_subscription(user_id: int) -> list[dict]:
+        """Obuna bo'lmagan majburiy kanallar ro'yxatini qaytaradi (bo'sh —
+        hammasiga obuna yoki kanal talab qilinmagan). Bot biror kanalni
+        tekshira olmasa (masalan u yerda admin emas), shu kanal talabdan
+        chetlab o'tiladi — noto'g'ri sozlangan kanal hamma foydalanuvchini
+        abadiy qulflab qo'ymasligi kerak."""
+        if not bot:
+            return []
+        try:
+            channels = await db.list_required_channels()
+        except Exception:
+            return []
+        missing = []
+        for ch in channels:
+            target = ch["chat_id"] or (f"@{ch['username']}" if ch["username"] else None)
+            if not target:
+                continue
+            try:
+                member = await bot.get_chat_member(target, user_id)
+                if member.status in ("left", "kicked"):
+                    missing.append({
+                        "title": ch["title"] or ch["username"] or "Kanal",
+                        "url": ch["invite_link"] or (f"https://t.me/{ch['username']}" if ch["username"] else ""),
+                    })
+            except Exception:
+                continue
+        return missing
 
     # ───────── yordamchilar ─────────
     async def S(key, default=0, cast=int):
@@ -180,6 +217,9 @@ def setup_webapp_api(app: web.Application, db, bot=None, admin_id: int = 0, noti
         if tg.get("photo_url") or full_name(tg) != u["fullname"]:
             await db.add_user(u["user_id"], full_name(tg), tg.get("username", ""), tg.get("photo_url", ""))
             u = await db.get_user(u["user_id"])
+        missing = await check_subscription(u["user_id"])
+        if missing:
+            return web.json_response({"ok": False, "error": "subscribe", "channels": missing})
         rank = await db.my_rank(u["user_id"])
         return web.json_response({
             "ok": True,
