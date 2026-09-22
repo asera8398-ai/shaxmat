@@ -179,6 +179,40 @@ class Database:
                     created_at TIMESTAMPTZ DEFAULT NOW()
                 )
             """)
+            # Majburiy obuna kanallari
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS required_channels (
+                    id           SERIAL PRIMARY KEY,
+                    chat_id      BIGINT,
+                    username     TEXT DEFAULT '',
+                    title        TEXT DEFAULT '',
+                    invite_link  TEXT DEFAULT '',
+                    active       BOOLEAN DEFAULT TRUE,
+                    sort         INT DEFAULT 0,
+                    created_at   TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
+            # Qo'shimcha adminlar (asosiy ADMIN_ID .env'da, bular botning o'zidan qo'shiladi)
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS admins (
+                    user_id    BIGINT PRIMARY KEY,
+                    fullname   TEXT DEFAULT '',
+                    added_by   BIGINT,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+            """)
+            # Pulni kartaga yechish so'rovlari
+            await conn.execute("""
+                CREATE TABLE IF NOT EXISTS withdrawals (
+                    id           SERIAL PRIMARY KEY,
+                    user_id      BIGINT NOT NULL,
+                    amount       BIGINT NOT NULL,
+                    card         TEXT NOT NULL,
+                    status       TEXT DEFAULT 'pending',   -- pending|paid|rejected
+                    created_at   TIMESTAMPTZ DEFAULT NOW(),
+                    resolved_at  TIMESTAMPTZ
+                )
+            """)
 
     async def _seed(self):
         """Birinchi ishga tushirishda standart paketlar va sozlamalar."""
@@ -202,7 +236,7 @@ class Database:
             "price_theme": "300", "price_skin": "250",
             "start_points": "100", "referral_points": "100",
             "auto_pay_enabled": "1", "auto_pay_offset": "50", "auto_pay_expiry": "30",
-            "min_topup": "5000", "maintenance": "0",
+            "min_topup": "5000", "min_withdraw": "20000", "maintenance": "0",
             "tournament_win_score": "10", "tournament_draw_score": "3",
             "daily_limit_bot": "60",
         }
@@ -558,3 +592,68 @@ class Database:
     async def pop_pending_payment(self, pay_id):
         async with self.pool.acquire() as conn:
             return await conn.fetchrow("DELETE FROM pending_payments WHERE pay_id=$1 RETURNING *", pay_id)
+
+    # ─────────────────────────── MAJBURIY OBUNA KANALLARI ───────────────────────────
+    async def add_required_channel(self, username, title, invite_link, chat_id=None):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchval(
+                "INSERT INTO required_channels (chat_id, username, title, invite_link, sort) "
+                "VALUES ($1,$2,$3,$4,(SELECT COALESCE(MAX(sort),0)+1 FROM required_channels)) RETURNING id",
+                chat_id, username, title, invite_link)
+
+    async def list_required_channels(self, only_active: bool = True):
+        async with self.pool.acquire() as conn:
+            sql = "SELECT * FROM required_channels"
+            if only_active:
+                sql += " WHERE active = TRUE"
+            return await conn.fetch(sql + " ORDER BY sort")
+
+    async def get_required_channel(self, cid: int):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow("SELECT * FROM required_channels WHERE id = $1", cid)
+
+    async def toggle_required_channel(self, cid: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute("UPDATE required_channels SET active = NOT active WHERE id = $1", cid)
+
+    async def delete_required_channel(self, cid: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute("DELETE FROM required_channels WHERE id = $1", cid)
+
+    # ─────────────────────────── QO'SHIMCHA ADMINLAR ───────────────────────────
+    async def add_admin(self, user_id: int, fullname: str, added_by: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "INSERT INTO admins (user_id, fullname, added_by) VALUES ($1,$2,$3) "
+                "ON CONFLICT (user_id) DO NOTHING", user_id, fullname, added_by)
+
+    async def remove_admin(self, user_id: int):
+        async with self.pool.acquire() as conn:
+            await conn.execute("DELETE FROM admins WHERE user_id = $1", user_id)
+
+    async def list_admins(self):
+        async with self.pool.acquire() as conn:
+            return await conn.fetch("SELECT * FROM admins ORDER BY created_at")
+
+    # ─────────────────────────── PULNI KARTAGA YECHISH ───────────────────────────
+    async def add_withdrawal(self, user_id: int, amount: int, card: str):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchval(
+                "INSERT INTO withdrawals (user_id, amount, card) VALUES ($1,$2,$3) RETURNING id",
+                user_id, amount, card)
+
+    async def get_withdrawal(self, wid: int):
+        async with self.pool.acquire() as conn:
+            return await conn.fetchrow("SELECT * FROM withdrawals WHERE id = $1", wid)
+
+    async def set_withdrawal_status(self, wid: int, status: str):
+        async with self.pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE withdrawals SET status=$2, resolved_at=NOW() WHERE id=$1", wid, status)
+
+    async def list_withdrawals(self, status: str | None = None, limit: int = 30):
+        async with self.pool.acquire() as conn:
+            if status:
+                return await conn.fetch(
+                    "SELECT * FROM withdrawals WHERE status=$1 ORDER BY id DESC LIMIT $2", status, limit)
+            return await conn.fetch("SELECT * FROM withdrawals ORDER BY id DESC LIMIT $1", limit)
