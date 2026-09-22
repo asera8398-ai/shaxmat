@@ -47,10 +47,10 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 logger = logging.getLogger("shashka")
 
 # ─── SOZLAMALAR ────────────────────────────────────────────────
-BOT_TOKEN   = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN   = os.getenv("BOT_TOKEN", "").strip()
 ADMIN_IDS   = {int(x) for x in re.findall(r"\d+", os.getenv("ADMIN_ID", "0")) if int(x)}
 ADMIN_ID    = min(ADMIN_IDS) if ADMIN_IDS else 0
-WEBAPP_URL  = os.getenv("WEBAPP_URL", "")
+WEBAPP_URL  = os.getenv("WEBAPP_URL", "").strip()
 CARD_NUMBER = os.getenv("CARD_NUMBER", "8600 0000 0000 0000")
 CARD_OWNER  = os.getenv("CARD_OWNER", "Familiya I.")
 CHANNEL     = os.getenv("CHANNEL_USERNAME", "").lstrip("@")
