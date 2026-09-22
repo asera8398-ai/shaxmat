@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="uz" data-theme="dark"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
@@ -294,41 +293,24 @@ box-shadow:0 -14px 40px rgba(0,0,0,.4);max-width:500px;margin:auto}
 .sk13{--wbg:radial-gradient(circle at 34% 28%,#fffde8 0,#b6ff7a 42%,#3e8c17 100%);--bbg:radial-gradient(circle at 34% 28%,#d9a3ff 0,#8b2ff5 42%,#3d0a80 100%);
 --rw:rgba(255,255,255,.55);--rb:rgba(255,255,255,.5);--sw:0 0 16px rgba(150,255,110,.75),0 4px 5px rgba(0,0,0,.45);--sb:0 0 16px rgba(160,80,255,.75),0 4px 5px rgba(0,0,0,.5);--cw:#fff;--cs:#2e6b10;--pr:50%}
 
-/* ── Do'kondagi taxta/dona tanlash panjarasi (bu blok yo'qolib qolgan edi — asosiy tuzatish) ── */
-.mbs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.mb{background:var(--bg);border:2px solid var(--ln);border-radius:15px;padding:7px;font-size:10.5px;font-weight:700;
-text-align:center;transition:.2s;position:relative;overflow:hidden}
-.mb.on{border-color:var(--ac);box-shadow:0 0 0 3px rgba(18,183,106,.16)}
-.mb:active{transform:scale(.94)}
-.mb span{display:block;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.mb .lk{position:absolute;inset:0;background:rgba(0,0,0,.62);display:flex;flex-direction:column;align-items:center;
-justify-content:center;color:#fff;font-size:11px;font-weight:800;gap:4px;border-radius:12px}
-.mb .lk .i{font-size:16px;color:var(--gd)}
-.mg{aspect-ratio:1;display:grid;grid-template-columns:repeat(4,1fr);padding:4px;border-radius:9px;
-background:linear-gradient(145deg,var(--fr1),var(--fr2))}
-.mg i{display:grid;place-items:center;background:var(--l1);font-style:normal}
-.mg i.d{background:var(--d1)}
-.mg u{width:74%;height:74%;border-radius:var(--pr,50%);display:block}
-.mg u.w{background:var(--wbg);box-shadow:var(--sw)}
-.mg u.b{background:var(--bbg);box-shadow:var(--sb)}
-.tic{display:inline-flex;vertical-align:-3px}
-.tic .i{width:15px;height:15px}
-.micon{font-size:32px;margin-bottom:8px;color:var(--ac);display:flex;justify-content:center}
-.micon .i{width:1em;height:1em}
-.tutcoin{font-size:54px;color:var(--gd);animation:tro 1s infinite alternate;display:flex;justify-content:center}
-.tutcoin .i{width:1em;height:1em}
-.rtro .i{width:40px;height:40px}
-#pvpq{position:fixed;inset:0;z-index:26;background:rgba(3,10,6,.92);backdrop-filter:blur(8px);display:none;place-items:center;padding:20px}
-#pvpq.on{display:grid;animation:fadeIn .25s}
-.qcard{width:min(320px,92vw);background:var(--card);border-radius:22px;padding:26px 22px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.6)}
-.spin{width:52px;height:52px;border-radius:50%;border:4px solid var(--ln);border-top-color:var(--ac);animation:spin 1s linear infinite;margin:0 auto 16px}
-.qcard b{font-size:16px;display:block;margin-bottom:5px}
-.qcard p{color:var(--mu);font-size:12.5px}
-.pvpbadge{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:var(--ac);color:#fff;
-font-size:10px;font-weight:800;padding:3px 10px;border-radius:99px;letter-spacing:.4px;display:flex;align-items:center;gap:4px}
-.pvpbadge .i{width:10px;height:10px}
-.pvpbadge.live:before{content:"";width:6px;height:6px;border-radius:50%;background:#fff;animation:blinkdot 1.2s infinite}
-@keyframes blinkdot{50%{opacity:.25}}
+/* ============ 8b. DO'KON: TAXTA/DONA KARTALARI ============ */
+.mbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:10px}
+.mb{position:relative;display:flex;flex-direction:column;align-items:center;background:var(--bg);
+border:1px solid var(--ln);border-radius:15px;padding:10px 6px 8px;text-align:center;transition:.15s}
+.mb:active{transform:scale(.95)}
+.mb.on{border-color:var(--ac);box-shadow:0 0 0 2px rgba(18,183,106,.3)}
+.mb span{display:block;margin-top:8px;font-size:11px;font-weight:700;line-height:1.25;color:var(--tx);
+overflow-wrap:break-word;word-break:break-word}
+.mb .lk{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:6px;font-size:10.5px;
+font-weight:800;color:var(--gd)}
+.mg{width:64px;height:64px;display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+border-radius:8px;overflow:hidden;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.mg i{display:grid;place-items:center;background:linear-gradient(135deg,var(--l1),var(--l2))}
+.mg i.d{background:linear-gradient(135deg,var(--d1),var(--d2))}
+.mg u{width:70%;height:70%;border-radius:var(--pr,50%)}
+.mg u.w{background:var(--wbg)}
+.mg u.b{background:var(--bbg)}
+
 /* ============ 9. MODAL / TOAST / KONFETTI ============ */
 #mod,#res{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(6px);display:none;place-items:center;z-index:20;padding:18px}
 #mod.on,#res.on{display:grid;animation:fadeIn .25s}
@@ -602,7 +584,7 @@ font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:99px;z-index:9;d
 
 <div id="shbg" onclick="sheet(0,0)"></div>
 <div class="sheet" id="sh-menu">
- <div class="row" onclick="sheet(0,0);restart()"><div class="ic"><i data-i="undo"></i></div><div class="grow"><b>Qaytadan boshlash</b><div class="mu">Joriy o'yin bekor qilinadi</div></div></div>
+ <div class="row" onclick="sheet(0,0);pvpAwareRestart()"><div class="ic"><i data-i="undo"></i></div><div class="grow"><b>Qaytadan boshlash</b><div class="mu">Joriy o'yin bekor qilinadi</div></div></div>
  <div class="row" onclick="sheet(0,0);cyc()"><div class="ic"><i data-i="palette"></i></div><div class="grow"><b>Taxtani almashtirish</b><div class="mu" id="shth">Klassik</div></div></div>
  <div class="row" onclick="sheet(0,0);cycSk()"><div class="ic"><i data-i="gem"></i></div><div class="grow"><b>Donalarni almashtirish</b><div class="mu" id="shsk">Klassik</div></div></div>
  <div class="row" onclick="sheet(0,0);toggleSound()"><div class="ic"><i data-i="sound"></i></div><div class="grow"><b>Ovoz</b><div class="mu" id="shsn">Yoqilgan</div></div></div>
@@ -610,12 +592,12 @@ font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:99px;z-index:9;d
 </div>
 
 <div class="sheet lvsheet" id="sh-lv">
- <div style="font-weight:900;font-size:16px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><i data-i="bot"></i> Bot darajasini tanlang</div>
- <button class="lvb" onclick="sheet(0,0);botGame(0)"><i style="background:linear-gradient(135deg,#12b76a,#5be3a3);color:#fff" data-i="smile"></i>
+ <div style="font-weight:900;font-size:16px;margin-bottom:12px">🤖 Bot darajasini tanlang</div>
+ <button class="lvb" onclick="sheet(0,0);botGame(0)"><i style="background:linear-gradient(135deg,#12b76a,#5be3a3)">🙂</i>
   <div><b>Oson</b><small>Yangi boshlovchilar uchun</small></div><u id="rw0">+5 ball</u></button>
- <button class="lvb" onclick="sheet(0,0);botGame(1)"><i style="background:linear-gradient(135deg,#3b9cff,#8fd0ff);color:#fff" data-i="target"></i>
+ <button class="lvb" onclick="sheet(0,0);botGame(1)"><i style="background:linear-gradient(135deg,#3b9cff,#8fd0ff)">😎</i>
   <div><b>O'rta</b><small>2 qadam oldinni ko'radi</small></div><u id="rw1">+15 ball</u></button>
- <button class="lvb" onclick="sheet(0,0);botGame(2)"><i style="background:linear-gradient(135deg,#e5484d,#ff8a8d);color:#fff" data-i="flame"></i>
+ <button class="lvb" onclick="sheet(0,0);botGame(2)"><i style="background:linear-gradient(135deg,#e5484d,#ff8a8d)">🔥</i>
   <div><b>Qiyin</b><small>4 qadam hisoblaydi</small></div><u id="rw2">+40 ball</u></button>
 </div>
 
@@ -640,15 +622,8 @@ font-size:11.5px;font-weight:700;padding:6px 13px;border-radius:99px;z-index:9;d
  <div class="mbtns"><button onclick="closeRes()">Chiqish</button><button class="ok" onclick="closeRes();restart()">Yana</button></div>
 </div></div>
 
-<div id="pvpq"><div class="qcard">
- <div class="spin"></div>
- <b>Raqib qidirilmoqda…</b>
- <p>Sizga teng kuchli o'yinchi topilishi bilan o'yin boshlanadi</p>
- <div class="mbtns"><button onclick="cancelQueue()" style="width:100%">Bekor qilish</button></div>
-</div></div>
-
 <div id="toast"></div><div id="cf"></div>
-<div class="offline" id="offl"><span class="tic" id="ic-offl"></span> Server bilan aloqa yo'q — mashq rejimi</div>
+<div class="offline" id="offl">⚠️ Server bilan aloqa yo'q — mashq rejimi</div>
 <script>
 const IC={
 palette:'<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 22a10 10 0 1 1 10-10c0 3-2 4-4 4h-2a2 2 0 0 0-1 3.7c.6.5.5 2.3-3 2.3z"/>',
@@ -672,22 +647,10 @@ chart:'<path d="M3 3v18h18M7 14l4-4 3 3 5-6"/>',cog:'<circle cx="12" cy="12" r="
 dot:'<circle cx="12" cy="12" r="5" fill="currentColor"/>',target:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>',
 plus:'<path d="M12 5v14M5 12h14"/>',trash:'<path d="M3 6h18M8 6V4h8v2M6 6l1 15h10l1-15"/>',
 save:'<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v6h8V3M8 21v-7h8v7"/>',
-users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M17 5a3.5 3.5 0 0 1 0 7M18 20a7 7 0 0 0-3-5.7"/>',
-check:'<path d="M20 6L9 17l-5-5"/>',
-gift:'<rect x="3" y="8" width="18" height="13" rx="2"/><path d="M3 8h18M12 8v13M7.5 8a2.5 2.5 0 1 1 0-5C10 3 12 5 12 8M16.5 8a2.5 2.5 0 1 0 0-5C14 3 12 5 12 8"/>',
-pin:'<path d="M12 22s7-7.6 7-13a7 7 0 1 0-14 0c0 5.4 7 13 7 13z"/><circle cx="12" cy="9" r="2.5"/>',
-megaphone:'<path d="M3 10v4a2 2 0 0 0 2 2h1l3 5V3L6 8H5a2 2 0 0 0-2 2z"/><path d="M14 7a5 5 0 0 1 0 10M17.5 4a9 9 0 0 1 0 16"/>',
-unlock:'<rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.4-2"/>',
-bolt:'<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>',
-handshake:'<path d="M2 12l4-4 3 2 3-2 3 2 4-4M2 12l4 4h3l2 2h3l2-2h1M9 10l3 3M15 10l-3 3"/>',
-smile:'<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>',
-sad:'<circle cx="12" cy="12" r="9"/><path d="M8 16s1.5-2 4-2 4 2 4 2M9 9h.01M15 9h.01"/>',
-warn:'<path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
-wifiOff:'<path d="M1 1l22 22M16.7 16.7a10 10 0 0 0-9.9-2.6M5 12.6a10 10 0 0 1 3-1.9M8.5 16.4a5 5 0 0 1 6 0M12 20h.01M2 8.8a15 15 0 0 1 4.2-2.6M22 8.8a15 15 0 0 0-6-3.4"/>'};
+users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 20a7 7 0 0 1 14 0"/><path d="M17 5a3.5 3.5 0 0 1 0 7M18 20a7 7 0 0 0-3-5.7"/>'};
 const ic=n=>`<svg class="i" viewBox="0 0 24 24">${IC[n]||''}</svg>`;
 const paint=()=>document.querySelectorAll('[data-i]').forEach(e=>{if(!e.dataset.d){e.innerHTML=ic(e.dataset.i);e.dataset.d=1}});
 paint();
-document.getElementById('ic-offl').innerHTML=ic('wifiOff');
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 
 /* ===================== TELEGRAM WEB APP ===================== */
@@ -703,68 +666,6 @@ async function api(path,body){
   body:JSON.stringify(Object.assign({initData:INIT},body||{}))});
   const j=await r.json();ONLINE=true;$('#offl').classList.remove('on');return j}
  catch(e){ONLINE=false;$('#offl').classList.add('on');return null}}
-
-/* ===================== REAL VAQTLI PvP (WebSocket) ===================== */
-let WS=null,MY_UID=null,OPP_UID=null,MATCHID=null,PENDING_QUEUE=false,OPP_INFO=null,WS_RETRY=0;
-function wsConnect(){
- if(!INIT)return;
- if(WS&&(WS.readyState==0||WS.readyState==1))return;
- const proto=location.protocol=='https:'?'wss':'ws';
- WS=new WebSocket(proto+'://'+location.host+'/ws');
- WS.onopen=()=>{WS_RETRY=0;WS.send(JSON.stringify({type:'auth',initData:INIT}))};
- WS.onmessage=e=>{let d;try{d=JSON.parse(e.data)}catch(_){return}wsHandle(d)};
- WS.onclose=()=>{if((PENDING_QUEUE||MATCHID)&&WS_RETRY<8){WS_RETRY++;setTimeout(wsConnect,1200)}};
- WS.onerror=()=>{};
-}
-function wsHandle(d){
- if(d.type=='ready'){MY_UID=d.uid;if(PENDING_QUEUE)WS.send(JSON.stringify({type:'queue'}))}
- else if(d.type=='queued'){}
- else if(d.type=='matched')onMatched(d);
- else if(d.type=='opponent_move')applyRemoteMove(d.move);
- else if(d.type=='invalid'){toast('Sinxronizatsiya xatosi — sahifani yangilang','warn')}
- else if(d.type=='time')applyServerTime(d.t);
- else if(d.type=='ended')endPvP(d);
- else if(d.type=='resync')resumeMatch(d);
-}
-function onMatched(d){
- PENDING_QUEUE=false;MATCHID=d.matchId;OPP_UID=d.opponent.id;OPP_INFO=d.opponent;
- $('#pvpq').classList.remove('on');hap('ok');
- CFG.minutes=d.minutes;
- start(d.opponent.name||"O'yinchi",d.opponent.elo,1,'human',{color:d.color,photo:d.opponent.photo});
-}
-function resumeMatch(d){
- MATCHID=d.matchId;ME=d.color;OPP=ME=='w'?'b':'w';B=d.board;turn=d.turn;
- T1=d.t[String(MY_UID)]!=null?d.t[String(MY_UID)]:T1;T2=d.t[String(OPP_UID)]!=null?d.t[String(OPP_UID)]:T2;
- MODE='human';sel=null;part=null;hintM=null;
- if(!$('#game').classList.contains('on')){
-  $('#on').textContent=d.opponent.name;$('#oa').outerHTML=avatar(d.opponent.photo,d.opponent.name,36,'oa');
-  $('#game').classList.add('on');document.body.style.overflow='hidden'}
- draw();updateClocks()}
-function applyServerTime(t){
- const my=t[String(MY_UID)],op=t[String(OPP_UID)];
- if(my!=null)T1=my;if(op!=null)T2=op;updateClocks()}
-function updateClocks(){
- $('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2);
- $('#t1').className='tm'+(turn==ME?' hot':'')+(T1<30?' low':'');
- $('#t2').className='tm'+(turn==OPP?' hot':'')+(T2<30?' low':'')}
-async function endPvP(d){
- if(ended)return;ended=true;clearInterval(tmr);MATCHID=null;
- S.P=d.points;S.elo=d.elo;if(d.winner)S.w++;else S.l++;
- applyAll();
- if(d.winner){sfx('win');confetti(70);hap('ok')}else sfx('lose');
- const t=d.winner?"G'alaba!":"Mag'lubiyat";
- $('#st').className='st'+(d.winner?' good':' warn');$('#st').textContent=t;
- $('#rico').className='rtro'+(d.winner?'':' l');
- $('#rico').innerHTML=d.winner?ic('trophy'):ic('sad');
- $('#rtt').textContent=t;
- const reasonTxt={timeout:d.winner?'Raqibning vaqti tugadi':'Vaqtingiz tugadi',
-  resign:d.winner?"Raqib taslim bo'ldi":"Siz taslim bo'ldingiz",
-  disconnect:d.winner?'Raqib aloqani uzdi':'Aloqa uzildi'}[d.reason]||'';
- let sub=(d.winner?`+${d.reward} ball · +${d.eloDelta} ELO`:`${d.eloDelta} ELO`);
- if(reasonTxt)sub=reasonTxt+'\n'+sub;
- $('#rtp').style.whiteSpace='pre-line';$('#rtp').textContent=sub;
- $('#rst').innerHTML=`<div><b>${S.w}</b><span class="mu">G'alaba</span></div><div><b>${S.l}</b><span class="mu">Mag'lub</span></div><div><b>${S.d}</b><span class="mu">Durang</span></div>`;
- setTimeout(()=>$('#res').classList.add('on'),500)}
 
 /* ===================== HOLAT ===================== */
 const LOCAL={sound:1,vibro:1,anim:1,coords:1,dark:1,seen:0};
@@ -814,7 +715,7 @@ async function boot(){
  if(!r||!r.ok){ONLINE=false;$('#offl').classList.add('on');
   if(TGUSER){S.name=(TGUSER.first_name||'')+' '+(TGUSER.last_name||'');S.photo=TGUSER.photo_url||''}
   return applyAll()}
- hydrate(r);applyAll();wsConnect()}
+ hydrate(r);applyAll()}
 function hydrate(r){
  if(r.user){const u=r.user;Object.assign(S,{name:u.name||S.name,photo:u.photo,P:u.points,balance:u.balance,
   elo:u.elo,w:u.w,l:u.l,d:u.d,th:u.theme,sk:u.skin,unl:u.unl||S.unl,rank:u.rank})}
@@ -854,7 +755,7 @@ function avatar(photo,name,size,id){
   :`<div class="av"${id?' id="'+id+'"':''} style="${st}">${(name||'?')[0].toUpperCase()}</div>`}
 const fmtSum=n=>String(n||0).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 function pt(){$('#pt').textContent=fmtSum(S.P);const w=$('#ptsw');w.classList.remove('bump');void w.offsetWidth;w.classList.add('bump')}
-function toast(t,ic_){const e=$('#toast');e.innerHTML=(ic_?'<span class="tic">'+ic(ic_)+'</span> ':'')+t;e.classList.add('on');vib(18);
+function toast(t,em){const e=$('#toast');e.innerHTML=(em?em+' ':'')+t;e.classList.add('on');vib(18);
  clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),2100)}
 
 function renderAnn(){
@@ -864,15 +765,15 @@ function renderAnn(){
 const esc=s=>String(s||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
 function tourHTML(){
  if(!TOUR)return `<div class="card" style="text-align:center;padding:20px">
-  <div class="micon" style="margin:0 auto 6px;color:var(--gd)">${ic('trophy')}</div><b>Hozircha chempionat yo'q</b>
+  <div style="font-size:34px">🏆</div><b>Hozircha chempionat yo'q</b>
   <div class="mu" style="margin-top:5px">Tez orada pul mukofotli chempionat e'lon qilinadi</div></div>`;
  const left=Math.max(0,TOUR.endsTs*1000-Date.now()),d=left/864e5|0,h=left/36e5%24|0,m=left/6e4%60|0;
  return `<div class="card tour">
-  <h3><span class="tic">${ic('trophy')}</span> ${esc(TOUR.title)}</h3>
+  <h3>🏆 ${esc(TOUR.title)}</h3>
   <div class="mu" style="color:rgba(255,255,255,.85);font-size:12.5px;margin-top:4px">${esc(TOUR.descr||'')}</div>
   <div class="cd"><div><b>${d}</b><span>kun</span></div><div><b>${h}</b><span>soat</span></div><div><b>${m}</b><span>daqiqa</span></div></div>
-  <div class="pz"><span class="tic">${ic('gift')}</span> ${esc(TOUR.prize||'')}</div>
-  <div class="me"><span class="tic">${ic('pin')}</span> Sizning o'rningiz <u>${TOUR.place||'—'}</u></div></div>`}
+  <div class="pz">🎁 ${esc(TOUR.prize||'')}</div>
+  <div class="me">📍 Sizning o'rningiz <u>${TOUR.place||'—'}</u></div></div>`}
 function renderTour(){$('#tourBox').innerHTML=tourHTML();$('#tourBox2').innerHTML=TOUR?tourHTML():''}
 setInterval(()=>{if(TOUR&&$('#s0').classList.contains('on'))renderTour()},30000);
 
@@ -926,7 +827,7 @@ function openBot(what){
  const url='https://t.me/'+u+(what=='ball'?'?start=ball':what=='topup'?'?start=topup':what=='ref'?'?start=ref':'');
  if(TG&&TG.openTelegramLink)TG.openTelegramLink(url);else location.href=url}
 function modal({t,p,ok,okText,icon}){$('#mt').textContent=t;$('#mp').textContent=p||'';
- $('#micon').innerHTML=icon?`<div class="micon">${ic(icon)}</div>`:'';
+ $('#micon').innerHTML=icon?`<div style="font-size:34px;margin-bottom:6px">${icon}</div>`:'';
  $('#mextra').innerHTML='';$('#mok').textContent=okText||'Ha';
  $('#mok').onclick=()=>{mod(0);ok&&ok()};mod(1)}
 function mod(v){$('#mod').classList.toggle('on',!!v);if(v)sfx('tap')}
@@ -976,18 +877,17 @@ function pick(b,col,d){const ms=moves(b,col);if(!ms.length)return null;if(!d)ret
 
 /* ===================== O'YIN HOLATI ===================== */
 let B,sel=null,turn='w',hist=[],extra=false,tmr,T1,T2,lv=1,rw=15,ended=false,last=null,hintM=null,
- MUST=[],part=null,quiet=0,taken={w:[],b:[]},mlog=[],firstDraw=false,busy=false,
- ME='w',OPP='b';
+ MUST=[],part=null,quiet=0,taken={w:[],b:[]},mlog=[],firstDraw=false,busy=false,MY='w',OPP='b';
 const sqn=(r,c)=>'abcdefgh'[c]+(8-r);
 function init(){B=Array.from({length:8},(_,r)=>Array.from({length:8},(_,c)=>(r+c)%2&&r<3?{c:'b'}:(r+c)%2&&r>4?{c:'w'}:null));
  turn='w';sel=null;hist=[];extra=false;ended=false;last=null;hintM=null;part=null;quiet=0;busy=false;
  taken={w:[],b:[]};mlog=[];T1=T2=CFG.minutes*60;$('#mvlog').innerHTML='';renderTaken()}
-function renderTaken(){$('#tk1').innerHTML=taken.w.map(x=>`<u class="b"></u>`).join('');
- $('#tk2').innerHTML=taken.b.map(x=>`<u class="w"></u>`).join('')}
+function renderTaken(){$('#tk1').innerHTML=taken[MY].map(x=>`<u class="${OPP}"></u>`).join('');
+ $('#tk2').innerHTML=taken[OPP].map(x=>`<u class="${MY}"></u>`).join('')}
 
 /* ===================== CHIZISH ===================== */
 function draw(o){o=o||{};const bd=$('#board');bd.innerHTML='';
- MUST=turn==ME&&!ended?moves(B,ME):[];
+ MUST=turn==MY&&!ended?moves(B,MY):[];
  const forced=CFG.force&&MUST.some(m=>m.caps.length)&&!part;
  let V=B,cur=sel,tg=[];
  if(part){const m=part.c[0],n=part.s;V=B.map(r=>r.map(x=>x&&{...x}));const pc=V[m.fr][m.fc];V[m.fr][m.fc]=null;
@@ -1020,15 +920,13 @@ function draw(o){o=o||{};const bd=$('#board');bd.innerHTML='';
     setTimeout(()=>sparks(s),200+(gh.i||0)*130)}}
   s.onclick=()=>tap(r,c);bd.appendChild(s)}
  const w=B.flat().filter(p=>p&&p.c=='w').length,b=B.flat().filter(p=>p&&p.c=='b').length;
- $('#me').textContent='ELO '+S.elo+' · '+w+' dona';
- $('#oe').textContent=($('#oe').dataset.e||'')+' '+b+' dona';
- $('#prow1').classList.toggle('act',turn==ME&&!ended);$('#prow2').classList.toggle('act',turn==OPP&&!ended);
- const st=$('#st');st.className='st'+(forced||part?' warn':turn==ME&&!ended?' good':'');
- if(!ended)st.innerHTML=turn!=ME?'<span class="thinking">Raqib o\'ylayapti<i></i><i></i><i></i></span>'
-  :part?'<span class="tic">'+ic('bolt')+'</span> Urishni davom ettiring'
-  :forced?'<span class="tic">'+ic('flame')+'</span> Urish majburiy!'
-  :extra?'<span class="tic">'+ic('plus')+'</span> Qo\'shimcha xod faol'
-  :'<span class="tic">'+ic('check')+'</span> Sizning xodingiz';
+ const meCnt=MY=='w'?w:b,opCnt=MY=='w'?b:w;
+ $('#me').textContent='ELO '+S.elo+' · '+meCnt+' dona';
+ $('#oe').textContent=($('#oe').dataset.e||'')+' '+opCnt+' dona';
+ $('#prow1').classList.toggle('act',turn==MY&&!ended);$('#prow2').classList.toggle('act',turn==OPP&&!ended);
+ const st=$('#st');st.className='st'+(forced||part?' warn':turn==MY&&!ended?' good':'');
+ if(!ended)st.innerHTML=turn!=MY?'<span class="thinking">Raqib o\'ylayapti<i></i><i></i><i></i></span>'
+  :part?'⚡ Urishni davom ettiring':forced?'🔥 Urish majburiy!':extra?'➕ Qo\'shimcha xod faol':'✅ Sizning xodingiz';
  ['undo','king','extra','hint'].forEach(k=>$('#tl-'+k).classList.toggle('off',S.P<price(k)))}
 function sparks(sq){for(let i=0;i<7;i++){const s=document.createElement('div');s.className='spark';
  const a=Math.random()*6.28,d=16+Math.random()*24;
@@ -1036,10 +934,10 @@ function sparks(sq){for(let i=0;i<7;i++){const s=document.createElement('div');s
  s.style.background=['#f5a524','#fff','#e5484d'][i%3];sq.appendChild(s);setTimeout(()=>s.remove(),700)}}
 
 /* ===================== XODLAR ===================== */
-function tap(r,c){if(ended||turn!=ME||busy)return;const p=B[r][c];
+function tap(r,c){if(ended||turn!=MY||busy)return;const p=B[r][c];
  if(part){const n=part.c.filter(m=>m.path[part.s][0]==r&&m.path[part.s][1]==c);if(n.length)step(n);return}
  if(sel){const n=MUST.filter(m=>m.fr==sel[0]&&m.fc==sel[1]&&m.path[0][0]==r&&m.path[0][1]==c);if(n.length)return step(n)}
- if(p&&p.c==ME){if(MUST.some(x=>x.fr==r&&x.fc==c)){sel=[r,c];sfx('tap')}
+ if(p&&p.c==MY){if(MUST.some(x=>x.fr==r&&x.fc==c)){sel=[r,c];sfx('tap')}
   else{sel=null;sfx('err');toast(CFG.force&&MUST.some(x=>x.caps.length)?'Urish majburiy — urishi mumkin bo\'lgan donani tanlang':'Bu donaning yurishi yo\'q')}}
  else sel=null;
  draw()}
@@ -1055,34 +953,30 @@ function doMove(m,col){const ghosts=m.caps.map(([r,c],i)=>({r,c,col:B[r][c].c,i}
  qt(m);B=ap(B,m);last=m;logMove(m,col);renderTaken();
  const nowK=B[m.tr][m.tc].k;
  if(m.caps.length){sfx('cap');vib(38)}else sfx('move');
- if(!wasK&&nowK){setTimeout(()=>{sfx('king');toast('Damka!','crown')},280)}
+ if(!wasK&&nowK){setTimeout(()=>{sfx('king');toast('Damka!','👑')},280)}
  return ghosts}
-function play(m){hist.push(JSON.stringify(B));const g=doMove(m,ME);sel=null;hintM=null;part=null;busy=true;
- if(extra){extra=false;toast('Qo\'shimcha xod: yana yuring','plus')}else turn=OPP;
+function play(m){hist.push(JSON.stringify(B));const g=doMove(m,MY);sel=null;hintM=null;part=null;busy=true;
+ if(MODE=='pvp'){turn=OPP;draw({mv:m,ghosts:g});
+  setTimeout(()=>{busy=false;pvpSend({t:'move',fr:m.fr,fc:m.fc,tr:m.tr,tc:m.tc,caps:m.caps})},S.anim?340:10);return}
+ if(extra){extra=false;toast('Qo\'shimcha xod: yana yuring','➕')}else turn='b';
  draw({mv:m,ghosts:g});
- if(MODE=='human'&&WS&&WS.readyState==1)
-  WS.send(JSON.stringify({type:'move',fr:m.fr,fc:m.fc,tr:m.tr,tc:m.tc,caps:m.caps}));
- setTimeout(()=>{busy=false;if(fin())return;if(MODE=='bot'&&quiet>=CFG.drawMoves)return end(null);
-  if(MODE=='bot'&&turn==OPP)setTimeout(bot,Math.max(120,CFG.botMs))},S.anim?340:10)}
-function applyRemoteMove(mv){if(ended)return;const m={fr:mv.fr,fc:mv.fc,tr:mv.tr,tc:mv.tc,caps:mv.caps,path:mv.path,pk:mv.pk};
- hist.push(JSON.stringify(B));const g=doMove(m,OPP);sel=null;hintM=null;part=null;turn=ME;busy=false;
- draw({mv:m,ghosts:g});if(fin())return}
+ setTimeout(()=>{busy=false;if(fin())return;if(quiet>=CFG.drawMoves)return end(null);
+  if(turn=='b')setTimeout(bot,Math.max(120,CFG.botMs))},S.anim?340:10)}
 function bot(){if(ended)return;const m=pick(B,'b',CFG.depths[lv]);if(!m)return fin();
  const g=doMove(m,'b');turn='w';draw({mv:m,ghosts:g});
  setTimeout(()=>{if(fin())return;if(quiet>=CFG.drawMoves)end(null)},S.anim?340:10)}
-function fin(){if(MODE=='human')return 0; // PvP yakunini FAQAT server 'ended' xabari hal qiladi
- const me=B.flat().filter(p=>p&&p.c==ME).length,op=B.flat().filter(p=>p&&p.c==OPP).length;
- if(!op||(turn==OPP&&!moves(B,OPP).length))return end(1);
- if(!me||(turn==ME&&!moves(B,ME).length))return end(0);return 0}
+function fin(){const w=B.flat().filter(p=>p&&p.c=='w').length,b=B.flat().filter(p=>p&&p.c=='b').length;
+ if(!b||(turn=='b'&&!moves(B,'b').length))return end(1);
+ if(!w||(turn=='w'&&!moves(B,'w').length))return end(0);return 0}
 
 /* ===================== NATIJA ===================== */
 let MODE='bot',startTs=0;
-async function end(win){if(ended)return 1;ended=true;clearInterval(tmr);
+async function end(win,pre){if(ended)return 1;ended=true;clearInterval(tmr);
  const result=win===1?'win':win===null?'draw':'lose';
  const dur=Math.max(0,Math.round((Date.now()-startTs)/1000));
  let reward=0,eloD=0,tourMsg=null,limited=false;
  draw();
- const r=await api('/game',{result:result,level:lv,mode:MODE,duration:dur,moves:mlog.length});
+ const r=pre||await api('/game',{result:result,level:lv,mode:MODE,duration:dur,moves:mlog.length});
  if(r&&r.ok){S.P=r.points;S.elo=r.elo;reward=r.reward;eloD=r.eloDelta;tourMsg=r.tour;limited=r.limited;
   if(result=='win')S.w++;else if(result=='lose')S.l++;else S.d++}
  else{reward=win===1?CFG.rewards[lv]:win===null?Math.round(CFG.rewards[lv]/3):0;
@@ -1095,83 +989,115 @@ async function end(win){if(ended)return 1;ended=true;clearInterval(tmr);
  const t=win===1?"G'alaba!":win===null?'Durang':"Mag'lubiyat";
  $('#st').className='st'+(win===1?' good':' warn');$('#st').textContent=t;
  $('#rico').className='rtro'+(win===1?'':win===null?' d':' l');
- $('#rico').innerHTML=win===1?ic('trophy'):win===null?ic('handshake'):ic('sad');
+ $('#rico').textContent=win===1?'🏆':win===null?'🤝':'😔';
  $('#rtt').textContent=t;
  let sub=win===1?`+${reward} ball · ${eloD>=0?'+':''}${eloD} ELO`
   :win===null?`+${reward} ball`:`${eloD} ELO. Keyingi safar albatta!`;
  if(tourMsg)sub+=`\n🏆 Chempionat: +${tourMsg.score} ochko · ${tourMsg.place}-o'rin`;
- if(limited)sub+="\n🛡 Kunlik mukofot limiti tugadi";
- // Eslatma: natija oynasi oddiy matn (whiteSpace:pre-line) — bu yerda ikonka o'rniga
- // qisqa emoji-belgi qoldirildi, chunki matn ichida inline SVG chiroyli chiqmaydi.
+ if(limited)sub+='\n🛡 Kunlik mukofot limiti tugadi';
  $('#rtp').style.whiteSpace='pre-line';$('#rtp').textContent=sub;
  $('#rst').innerHTML=`<div><b>${S.w}</b><span class="mu">G'alaba</span></div><div><b>${S.l}</b><span class="mu">Mag'lub</span></div><div><b>${S.d}</b><span class="mu">Durang</span></div>`;
- setTimeout(()=>$('#res').classList.add('on'),700);return 1}
+ setTimeout(()=>$('#res').classList.add('on'),700);
+ if(MODE=='pvp')pvpCleanup();
+ return 1}
 function closeRes(){$('#res').classList.remove('on')}
 
 /* ===================== O'YINNI BOSHLASH ===================== */
 const fmt=t=>String(Math.max(0,t)/60|0).padStart(2,'0')+':'+String(Math.max(0,t)%60).padStart(2,'0');
 let LASTG=null;
+/* ===================== HAQIQIY RAQIB (WebSocket PvP) ===================== */
+let PVP=null,PVP_MATCHED=false,PVP_WANT_CLOSE=false;
+function pvpUrl(){const proto=location.protocol=='https:'?'wss:':'ws:';
+ return proto+'//'+location.host+'/ws/pvp?initData='+encodeURIComponent(INIT)}
+function pvpSend(o){if(PVP&&PVP.readyState==1)try{PVP.send(JSON.stringify(o))}catch(e){}}
 function quickPlay(){
- if(!ONLINE||!INIT){sfx('err');return modal({t:"Internet aloqasi yo'q",
-  p:"Real o'yinchi bilan o'ynash uchun internet va Telegram orqali kirish kerak. Hozircha bot bilan mashq qiling.",
-  icon:'wifiOff',okText:'Bot bilan o\'ynash',ok:()=>sheet('lv',1)})}
- PENDING_QUEUE=true;$('#pvpq').classList.add('on');sfx('tap');wsConnect()}
-function cancelQueue(){PENDING_QUEUE=false;$('#pvpq').classList.remove('on');
- if(WS&&WS.readyState==1)WS.send(JSON.stringify({type:'cancel'}))}
-function botGame(i){lvSel=i;start('Bot · '+['Oson',"O'rta",'Qiyin'][i],0,i,'bot',{elo:0})}
+ if(!INIT){toast("Internet aloqasi kerak — mashq rejimida faqat botlar bilan o'ynash mumkin");return}
+ if(PVP)return;
+ PVP_MATCHED=false;PVP_WANT_CLOSE=false;
+ modal({t:"Raqib qidirilmoqda…",p:"Sizga mos ELO'dagi o'yinchi izlanmoqda",icon:'🔎',okText:'Bekor qilish',ok:cancelPvp});
+ pvpConnect()}
+function pvpConnect(){
+ PVP=new WebSocket(pvpUrl());
+ PVP.onopen=()=>pvpSend({t:'find'});
+ PVP.onmessage=e=>{try{pvpMsg(JSON.parse(e.data))}catch(err){}};
+ PVP.onclose=()=>{const intentional=PVP_WANT_CLOSE;PVP_WANT_CLOSE=false;PVP=null;
+  if(intentional)return;
+  if(PVP_MATCHED&&!ended){toast('Aloqa uzildi, qayta ulanilmoqda…','🔄');setTimeout(()=>{if(!ended)pvpConnect()},1500)}
+  else if(!PVP_MATCHED){mod(0);toast("Qidiruv to'xtadi, qayta urinib ko'ring")}}}
+function cancelPvp(){PVP_WANT_CLOSE=true;pvpSend({t:'cancel'});if(PVP)try{PVP.close()}catch(e){}PVP=null;mod(0)}
+function pvpCleanup(){if(PVP){PVP_WANT_CLOSE=true;try{PVP.close()}catch(e){}PVP=null}}
+function pvpMsg(d){
+ if(d.t=='queued')return;
+ if(d.t=='matched'){PVP_MATCHED=true;mod(0);MY=d.color;OPP=MY=='w'?'b':'w';
+  start(d.opp.name,d.opp.elo,1,'pvp');return}
+ if(d.t=='resume'){PVP_MATCHED=true;mod(0);MY=d.color;OPP=MY=='w'?'b':'w';MODE='pvp';lv=1;rw=CFG.rewards[1];
+  toast('Qayta ulandi','✅');B=d.board;turn=d.turn;sel=null;part=null;hintM=null;last=null;busy=false;ended=false;
+  T1=d.clock[MY]|0;T2=d.clock[OPP]|0;
+  $('#on').textContent=d.opp.name;$('#oa').textContent=d.opp.name[0];$('#oe').dataset.e='ELO '+d.opp.elo+' ·';
+  $('#game').classList.remove('out');$('#game').classList.add('on');document.body.style.overflow='hidden';
+  TG&&TG.BackButton&&(TG.BackButton.show(),TG.BackButton.onClick(stop));
+  clearInterval(tmr);tmr=setInterval(()=>{if(ended)return;turn==MY?T1--:T2--;
+   $('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2);
+   $('#t1').className='tm'+(turn==MY?' hot':'')+(T1<30?' low':'');
+   $('#t2').className='tm'+(turn==OPP?' hot':'')+(T2<30?' low':'')},1000);
+  draw();return}
+ if(d.t=='move'){const m={fr:d.fr,fc:d.fc,tr:d.tr,tc:d.tc,caps:d.caps||[],path:d.path||[[d.tr,d.tc]]};
+  const g=doMove(m,OPP);turn=d.turn;busy=false;draw({mv:m,ghosts:g});
+  if(d.clock){T1=d.clock[MY]|0;T2=d.clock[OPP]|0;$('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2)}
+  return}
+ if(d.t=='ack'){if(d.clock){T1=d.clock[MY]|0;T2=d.clock[OPP]|0;$('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2)}return}
+ if(d.t=='opponent_left'){toast('Raqib aloqasi uzildi, biroz kuting…','⏳');return}
+ if(d.t=='opponent_back'){toast('Raqib qaytdi','✅');return}
+ if(d.t=='error'){toast(d.error=='illegal_move'?"Bu xod qonuniy emas":'Xato yuz berdi');return}
+ if(d.t=='end'){busy=false;const win=d.result=='win'?1:d.result=='draw'?null:0;end(win,d);setTimeout(stop,1400);return}}
+function botGame(i){lvSel=i;start('Bot · '+['Oson',"O'rta",'Qiyin'][i],0,i,'bot')}
 let lvSel=1;
-function restart(){if(!LASTG)return;LASTG[3]=='human'?quickPlay():start.apply(null,LASTG)}
-function start(name,elo,l,mode,pvp){LASTG=[name,elo,l,mode];lv=l;MODE=mode;rw=CFG.rewards[l]||0;
- if(pvp){ME=pvp.color;OPP=ME=='w'?'b':'w'}else{ME='w';OPP='b'}
- init();closeRes();startTs=Date.now();
- $('#on').textContent=name;
- $('#oa').outerHTML=avatar(pvp?pvp.photo:'',name,36,'oa');
- $('#oe').dataset.e=elo?'ELO '+elo+' ·':'';
+function restart(){if(MODE=='pvp'){quickPlay();return}if(LASTG)start.apply(null,LASTG)}
+function pvpAwareRestart(){if(MODE=='pvp'&&!ended){resign();return}restart()}
+function start(name,elo,l,mode){if(mode!='pvp'){MY='w';OPP='b'}LASTG=[name,elo,l,mode];lv=l;MODE=mode;rw=CFG.rewards[l];init();closeRes();
+ startTs=Date.now();
+ $('#on').textContent=name;$('#oa').textContent=name[0];$('#oe').dataset.e=elo?'ELO '+elo+' ·':'';
  $('#game').classList.remove('out');$('#game').classList.add('on');document.body.style.overflow='hidden';
- TG&&TG.BackButton&&(TG.BackButton.show(),TG.BackButton.onClick(()=>mode=='human'?resign():stop()));
+ TG&&TG.BackButton&&(TG.BackButton.show(),TG.BackButton.onClick(stop));
  $('#bw').classList.remove('enter');void $('#bw').offsetWidth;if(S.anim)$('#bw').classList.add('enter');
- ['undo','king','extra'].forEach(k=>$('#tl-'+k).classList.toggle('off',mode=='human'));
  draw({drop:true});sfx('coin');
  $('#t1').textContent=$('#t2').textContent=fmt(T1);
- clearInterval(tmr);
- if(mode=='bot'){
-  tmr=setInterval(()=>{if(ended)return;turn=='w'?T1--:T2--;
-   $('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2);
-   $('#t1').className='tm'+(turn=='w'?' hot':'')+(T1<30?' low':'');
-   $('#t2').className='tm'+(turn=='b'?' hot':'')+(T2<30?' low':'');
-   if(T1<=0)end(0);else if(T2<=0)end(1)},1000)}}
-function stop(){clearInterval(tmr);
- $('#game').classList.add('out');TG&&TG.BackButton&&TG.BackButton.hide();
+ clearInterval(tmr);tmr=setInterval(()=>{if(ended)return;turn==MY?T1--:T2--;
+  $('#t1').textContent=fmt(T1);$('#t2').textContent=fmt(T2);
+  $('#t1').className='tm'+(turn=='w'?' hot':'')+(T1<30?' low':'');
+  $('#t2').className='tm'+(turn=='b'?' hot':'')+(T2<30?' low':'');
+  if(T1<=0)end(0);else if(T2<=0)end(1)},1000)}
+function stop(){clearInterval(tmr);$('#game').classList.add('out');
+ TG&&TG.BackButton&&TG.BackButton.hide();
  setTimeout(()=>{$('#game').classList.remove('on','out');document.body.style.overflow=''},290)}
 function resign(){if(ended)return stop();
- modal({t:'Taslim bo\'lasizmi?',p:"O'yin mag'lubiyat bilan yakunlanadi.",icon:'flag',ok:()=>{
-  if(MODE=='human'&&WS&&WS.readyState==1)WS.send(JSON.stringify({type:'resign'}));else end(0);
-  setTimeout(stop,MODE=='human'?200:1400)}})}
+ modal({t:'Taslim bo\'lasizmi?',p:"O'yin mag'lubiyat bilan yakunlanadi.",icon:'🏳️',ok:()=>{
+  if(MODE=='pvp'){pvpSend({t:'resign'});busy=true}else{end(0);setTimeout(stop,1400)}}})}
 
 /* ===================== YORDAMLAR ===================== */
 const HN={undo:'Xodni qaytarish',king:'Damka',extra:"Qo'shimcha xod",hint:'Maslahat'};
-function ask(k){if(ended||turn!=ME){sfx('err');return toast('Hozir mumkin emas')}
- if(MODE=='human'&&k!='hint'){sfx('err');return toast("Bu yordam odam bilan o'yinda ishlamaydi — halol musobaqa!")}
+function ask(k){if(MODE=='pvp')return toast("Haqiqiy raqib bilan yordamlar ishlamaydi");
+ if(ended||turn!=MY){sfx('err');return toast('Hozir mumkin emas')}
  if(part)return toast('Avval urishni tugating');
  const c=price(k);
  if(S.P<c){sfx('err');return modal({t:'Ball yetarli emas',p:`Bu yordam uchun ${c} ball kerak. Hozir sizda ${S.P} ball bor.`,
-  icon:'gem',okText:'Ball sotib olish',ok:()=>openBot('ball')})}
+  icon:'💎',okText:'Ball sotib olish',ok:()=>openBot('ball')})}
  if(k=='king'&&(!sel||B[sel[0]][sel[1]].k))return toast('Avval oddiy donangizni tanlang');
  if(k=='undo'&&!hist.length)return toast("Qaytaradigan xod yo'q");
  if(k=='extra'&&extra)return toast('Allaqachon faol');
  modal({t:HN[k],p:c+' ball sarflanadi. Tasdiqlaysizmi?',okText:'Ha, ishlatish',ok:()=>use(k,c)})}
 async function use(k,c){
  const r=await api('/help',{kind:k});
- if(r&&!r.ok){sfx('err');return modal({t:'Ball yetarli emas',p:`Kerak: ${r.need} ball`,icon:'gem',
+ if(r&&!r.ok){sfx('err');return modal({t:'Ball yetarli emas',p:`Kerak: ${r.need} ball`,icon:'💎',
   okText:'Sotib olish',ok:()=>openBot('ball')})}
  S.P=r&&r.ok?r.points:Math.max(0,S.P-c);
  pt();sfx('coin');saveDemo();
- if(k=='undo'){B=JSON.parse(hist.pop());sel=null;last=null;hintM=null;turn='w';mlog.pop();mlog.pop();
+ if(k=='undo'){B=JSON.parse(hist.pop());sel=null;last=null;hintM=null;turn=MY;mlog.pop();mlog.pop();
   $('#mvlog').innerHTML=mlog.slice(-14).map(x=>`<span class="${x.col}">${x.t}</span>`).join('')}
  if(k=='king'){B[sel[0]][sel[1]].k=true;sfx('king')}
  if(k=='extra')extra=true;
- if(k=='hint'){hintM=pick(B,'w',3);sel=hintM?[hintM.fr,hintM.fc]:null;
-  if(hintM)toast('Tavsiya: '+sqn(hintM.fr,hintM.fc)+' → '+sqn(hintM.tr,hintM.tc),'bulb')}
+ if(k=='hint'){hintM=pick(B,MY,3);sel=hintM?[hintM.fr,hintM.fc]:null;
+  if(hintM)toast('Tavsiya: '+sqn(hintM.fr,hintM.fc)+' → '+sqn(hintM.tr,hintM.tc),'💡')}
  draw()}
 
 /* ===================== MAVZU VA SKINLAR ===================== */
@@ -1188,23 +1114,23 @@ function renderShop(){
   ${unlS(i)?'':`<div class="lk"><i data-i="lock"></i>${CFG.skinPrice}</div>`}</button>`).join('');paint()}
 async function unlock(kind,i){
  const cost=kind=='theme'?CFG.themePrice:CFG.skinPrice;
- if(S.P<cost){sfx('err');return modal({t:'Ball yetarli emas',p:`Ochish uchun ${cost} ball kerak.`,icon:'gem',
+ if(S.P<cost){sfx('err');return modal({t:'Ball yetarli emas',p:`Ochish uchun ${cost} ball kerak.`,icon:'💎',
   okText:'Ball sotib olish',ok:()=>openBot('ball')})}
  const r=await api('/unlock',{kind:kind,index:i});
  if(r&&!r.ok)return toast('Ochib bo\u2019lmadi');
  if(r&&r.ok){S.P=r.points;S.unl=r.unl}
  else{S.P-=cost;(kind=='theme'?S.unl.t:S.unl.s).push(i)}
  sfx('coin');confetti(24);hap('ok');
- kind=='theme'?(S.th=i):(S.sk=i);applyAll();toast('Ochildi!','unlock')}
-function setTh(i){if(!unlT(i))return modal({t:TN[i],p:`Bu taxtani ${CFG.themePrice} ballga ochasizmi?`,icon:'palette',
+ kind=='theme'?(S.th=i):(S.sk=i);applyAll();toast('Ochildi!','🔓')}
+function setTh(i){if(!unlT(i))return modal({t:TN[i],p:`Bu taxtani ${CFG.themePrice} ballga ochasizmi?`,icon:'🎨',
   okText:'Ochish',ok:()=>unlock('theme',i)});
- S.th=i;sfx('tap');api('/profile',{theme:i});applyAll();toast('Taxta: '+TN[i],'palette')}
-function setSk(i){if(!unlS(i))return modal({t:SN[i],p:`Bu dona to'plamini ${CFG.skinPrice} ballga ochasizmi?`,icon:'gem',
+ S.th=i;sfx('tap');api('/profile',{theme:i});applyAll();toast('Taxta: '+TN[i],'🎨')}
+function setSk(i){if(!unlS(i))return modal({t:SN[i],p:`Bu dona to'plamini ${CFG.skinPrice} ballga ochasizmi?`,icon:'⚪️',
   okText:'Ochish',ok:()=>unlock('skin',i)});
- S.sk=i;sfx('tap');api('/profile',{skin:i});applyAll();toast('Donalar: '+SN[i],'gem')}
-function cyc(){const a=TN.map((_,i)=>i).filter(unlT);if(a.length<2)return toast("Do'konda yangi taxtalarni oching",'palette');
+ S.sk=i;sfx('tap');api('/profile',{skin:i});applyAll();toast('Donalar: '+SN[i],'⚪️')}
+function cyc(){const a=TN.map((_,i)=>i).filter(unlT);if(a.length<2)return toast("Do'konda yangi taxtalarni oching",'🎨');
  setTh(a[(a.indexOf(S.th)+1)%a.length])}
-function cycSk(){const a=SN.map((_,i)=>i).filter(unlS);if(a.length<2)return toast("Do'konda yangi donalarni oching",'gem');
+function cycSk(){const a=SN.map((_,i)=>i).filter(unlS);if(a.length<2)return toast("Do'konda yangi donalarni oching",'⚪️');
  setSk(a[(a.indexOf(S.sk)+1)%a.length])}
 
 /* ===================== QO'LLANMA ===================== */
@@ -1221,12 +1147,12 @@ function tutClose(){$('#tut').classList.remove('on')}
 function tutNext(){TI++;if(TI>=TUT.length)return tutClose();tutDraw()}
 function tutDraw(){const t=TUT[TI];$('#tth').textContent=t.h;$('#ttp').innerHTML=t.p;
  const cls={mv:'w mv',cap:'b cap',jmp:'w jmp',krn:'w krn'}[t.v];
- $('#tvis').innerHTML=t.v=='coin'?'<div class="tutcoin">'+ic('gem')+'</div>':
+ $('#tvis').innerHTML=t.v=='coin'?'<div style="font-size:54px;animation:tro 1s infinite alternate">💎</div>':
   `<div class="tb">${[...Array(16)].map((_,k)=>{const d=((k>>2)+(k&3))%2;
    let u='';if(k==13)u=`<u class="${cls||'w'}"></u>`;else if(k==10&&(t.v=='cap'||t.v=='jmp'))u='<u class="b cap"></u>';
    return `<i class="${d?'d':''}">${u}</i>`}).join('')}</div>`;
  $('#tdots').innerHTML=TUT.map((_,i)=>`<u class="${i==TI?'on':''}"></u>`).join('');
- $('#tnext').innerHTML=TI==TUT.length-1?'Boshladik! '+ic('check'):'Keyingisi →'}
+ $('#tnext').textContent=TI==TUT.length-1?'Boshladik! ✓':'Keyingisi →'}
 
 /* ===================== ISHGA TUSHIRISH ===================== */
 addEventListener('keydown',e=>{if(e.key=='Escape'){
