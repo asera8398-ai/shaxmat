@@ -33,7 +33,7 @@ from matchmaking import MatchmakingManager
 
 logger = logging.getLogger("webapp_api")
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 WEBAPP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "webapp")
 INITDATA_TTL = 24 * 60 * 60          # initData amal qilish muddati (1 kun)
 MIN_GAME_SECONDS = 15                # bundan tez "g'alaba" — shubhali
