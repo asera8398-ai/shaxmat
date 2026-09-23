@@ -141,9 +141,13 @@ async def notify(user_id: int, text: str, kb=None):
         return False
 
 def kb(rows) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=t, callback_data=d) if not d.startswith("url:")
-         else InlineKeyboardButton(text=t, url=d[4:]) for t, d in row] for row in rows])
+    def one(t, d):
+        if d.startswith("webapp:"):
+            return InlineKeyboardButton(text=t, web_app=WebAppInfo(url=d[7:]))
+        if d.startswith("url:"):
+            return InlineKeyboardButton(text=t, url=d[4:])
+        return InlineKeyboardButton(text=t, callback_data=d)
+    return InlineKeyboardMarkup(inline_keyboard=[[one(t, d) for t, d in row] for row in rows])
 
 def _webapp_url_ok() -> bool:
     """WEBAPP_URL haqiqiy ochiq (https://...) manzilmi, yoki Railway'ning
@@ -637,7 +641,7 @@ async def champ(msg: Message):
         f"📊 <b>TOP-10</b>\n{lines}\n\n"
         f"📍 Sizning o'rningiz: <b>{place}</b>\n\n"
         f"Har g'alaba = <b>{await S('tournament_win_score', 10)} ochko</b>. O'ynang va yuqoriga chiqing!",
-        reply_markup=kb([[("🎮 Hoziroq o'ynash", "url:" + WEBAPP_URL)]] if _webapp_url_ok() else []))
+        reply_markup=kb([[("🎮 Hoziroq o'ynash", "webapp:" + WEBAPP_URL)]] if _webapp_url_ok() else []))
 
 
 @user_router.message(F.text == "👥 Do'st taklif qilish")
@@ -1533,7 +1537,7 @@ async def a_bcast_send(msg: Message, state: FSMContext):
 async def do_broadcast(text: str, admin: int):
     ids = await db.all_user_ids()
     sent = fail = 0
-    m = kb([[("🎮 O'ynash", "url:" + WEBAPP_URL)]]) if _webapp_url_ok() else None
+    m = kb([[("🎮 O'ynash", "webapp:" + WEBAPP_URL)]]) if _webapp_url_ok() else None
     for uid in ids:
         if await notify(uid, text, m):
             sent += 1
