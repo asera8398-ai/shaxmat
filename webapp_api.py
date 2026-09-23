@@ -28,6 +28,7 @@ from urllib.parse import parse_qsl
 from datetime import datetime, timezone
 
 from aiohttp import web
+import aiohttp as aiohttp_client
 
 from matchmaking import MatchmakingManager
 
@@ -87,6 +88,16 @@ def rate_ok(user_id: int, limit: int = 40, window: int = 60) -> bool:
 
 def full_name(u: dict) -> str:
     return (f"{u.get('first_name','')} {u.get('last_name','')}").strip() or "O'yinchi"
+
+
+# Telegram'ning rasmiy Mini App SDK skripti. Ba'zi mamlakatlarda (jumladan
+# O'zbekistonda, tarmoq operatoriga qarab) telegram.org sayti sekin ishlaydi
+# yoki bloklanadi — garchi Telegram ilovaning o'zi ishlayversa ham. Shuning
+# uchun bu faylni foydalanuvchi to'g'ridan-to'g'ri telegram.org'dan emas,
+# BIZNING serverimiz orqali oladi (server odatda cheklovsiz internetga ega).
+_TG_SDK_URL = "https://telegram.org/js/telegram-web-app.js"
+_TG_SDK_CACHE = {"body": b"", "ts": 0.0}
+_TG_SDK_TTL = 3600  # soniya
 
 
 def setup_webapp_api(app: web.Application, db, bot=None, admin_id: int = 0, notify=None):
@@ -342,6 +353,29 @@ def setup_webapp_api(app: web.Application, db, bot=None, admin_id: int = 0, noti
     # ───────── statik fayllar ─────────
     async def index(request):
         return web.FileResponse(os.path.join(WEBAPP_DIR, "index.html"))
+
+    async def telegram_sdk_proxy(request):
+        """Telegram'ning telegram-web-app.js skriptini serverimiz orqali
+        uzatadi — pastdagi izohga qarang."""
+        now = time.time()
+        if not _TG_SDK_CACHE["body"] or now - _TG_SDK_CACHE["ts"] > _TG_SDK_TTL:
+            try:
+                timeout = aiohttp_client.ClientTimeout(total=6)
+                async with aiohttp_client.ClientSession(timeout=timeout) as session:
+                    async with session.get(_TG_SDK_URL) as resp:
+                        if resp.status == 200:
+                            _TG_SDK_CACHE["body"] = await resp.read()
+                            _TG_SDK_CACHE["ts"] = now
+            except Exception as e:
+                logger.warning("Telegram SDK'ni yuklab bo'lmadi (eski nusxa ishlatiladi): %s", e)
+        if not _TG_SDK_CACHE["body"]:
+            # Hech qachon yuklanmagan bo'lsa ham sahifa qulab tushmasin —
+            # bo'sh, zararsiz skript qaytaramiz.
+            return web.Response(text="// telegram-web-app.js hozircha mavjud emas",
+                                content_type="application/javascript")
+        return web.Response(body=_TG_SDK_CACHE["body"], content_type="application/javascript")
+
+    app.router.add_get("/telegram-web-app.js", telegram_sdk_proxy)
 
     # ───────── real-vaqtli PvP (WebSocket) ─────────
     mm = MatchmakingManager(db, verify_init_data, S)
